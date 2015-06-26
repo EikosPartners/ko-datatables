@@ -1,0 +1,24 @@
+{
+  "name": "ko-datatables",
+  "version": "1.0.0",
+  "homepage": "https://github.com/EikosPartners/ko-datatables",
+  "description": "A Knockout component for DataTables",
+  "main": "kodt.js",
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "ko",
+    "knockout",
+    "datatables",
+    "grid",
+    "table",
+    "component"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "*", "!kodt.js"
+  ]
+}

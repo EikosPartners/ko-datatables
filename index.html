@@ -5,9 +5,80 @@
         <meta charset="utf-8" />
 
         <title>ko-datatables: Examples</title>
+
+        <!-- bootstrap -->
+        <link rel="stylesheet" href="lib/bootstrap.min.css" />
+        <!-- flatui -->
+        <link rel="stylesheet" href="lib/flat-ui.min.css" />
+
+        <link rel="stylesheet" href="index.css" />
     </head>
     <body>
-        <h1>Coming Soon</h1>
+        <div class="navigation">
+            <nav class="navbar navbar-inverse navbar-embossed navbar-fixed-top" role="navigation">
+                <div class="navbar-header">
+                    <button class="navbar-toggle"
+                        data-target="#navigation-collapse"
+                        data-toggle="collapse"
+                        type="button">
+                        <span class="sr-only">Toggle Navigation</span>
+                    </button>
+                    <a class="navbar-brand" href="#">ko-datatables</a>
+                </div>
+                <div id="navigation-collapse" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-left">
+                        <li>
+                            <a href="https://github.com/EikosPartners/ko-datatables">
+                                <span class="fui-github"></span>
+                                Source
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <span class="fui-list-thumbnailed"></span>
+                                Examples
+                                <span class="navbar-unread">1</span>
+                            </a>
+                            <span class="dropdown-arrow"></span>
+                            <ul class="dropdown-menu">
+                                <li><a href="#example-zero">Zero Configuration</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <form class="navbar-form navbar-right" role="search" action="#">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input id="navbarInput-01" class="form-control" type="search" placeholder="Search" />
+                                <span class="input-group-btn">
+                                    <button class="btn" type="submit">
+                                        <span class="fui-search">
+                                        </span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </nav>
+        </div>
+
+        <div class="headline container">
+            <h1>ko-datatables</h1>
+            <small>A Knockout component for DataTables</small>
+        </div>
+
+        <div class="content container">
+            <h5 id="example-zero">Zero Configuration</h5>
+            <small>Coming Soon</small>
+        </div>
+
+
+        <!-- jquery -->
+        <script src="lib/jquery.min.js"></script>
+        <!-- bootstrap
+        <script src="lib/bootstrap.min.js"></script>
+        <! flatui -->
+        <script src="lib/flat-ui.min.js"></script>
     </body>
 </html>
 

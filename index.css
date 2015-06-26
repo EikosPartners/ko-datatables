@@ -1,0 +1,28 @@
+
+small {
+    color: rgba(52, 73, 94, .3);
+}
+
+.headline {
+    margin-top: 100px;
+    text-align: center;
+    font-weight: 700;
+}
+.headline img {
+    border-radius: 100%;
+}
+.headline small {
+    font-size: 22px;
+}
+
+.navigation li > a > span[class^="fui"] {
+    margin-right: 10px;
+}
+.navigation .nav
+{
+    margin-left: 0px !important;
+}
+
+.content {
+    margin-top: 30px;
+}

@@ -79,6 +79,17 @@
         <script src="lib/bootstrap.min.js"></script>
         <! flatui -->
         <script src="lib/flat-ui.min.js"></script>
+
+        <script>
+            $(".input-group").each(function ( ) {
+                var $this = $(this);
+                $this.children("input").on("focus", function ( ) {
+                    $this.addClass("focus")
+                }).on("blur", function ( ) {
+                    $this.removeClass("focus")
+                });
+            });
+        </script>
     </body>
 </html>
 

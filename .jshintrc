@@ -33,7 +33,7 @@
     "maxparams"     : 5,        // {int} Max number of formal params allowed per function
     "maxdepth"      : 3,        // {int} Max depth of nested blocks (within functions)
     "maxstatements" : 60,       // {int} Max number statements per function
-    "maxcomplexity" : 10,       // {int} Max cyclomatic complexity per function
+    "maxcomplexity" : 15,       // {int} Max cyclomatic complexity per function
     "maxlen"        : 80,       // {int} Max number of characters per line
 
     // Relaxing
@@ -50,7 +50,7 @@
     "globalstrict"  : false,     // true: Allow global "use strict" (also enables 'strict')
     "iterator"      : false,     // true: Tolerate using the `__iterator__` property
     "lastsemic"     : false,     // true: Tolerate omitting a semicolon for the last statement of a 1-line block
-    "laxbreak"      : false,     // true: Tolerate possibly unsafe line breakings
+    "laxbreak"      : true,      // true: Tolerate possibly unsafe line breakings
     "laxcomma"      : true,      // true: Tolerate comma-first style coding
     "loopfunc"      : false,     // true: Tolerate functions being defined in loops
     "multistr"      : false,     // true: Tolerate multi-line strings

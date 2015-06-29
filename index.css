@@ -22,6 +22,11 @@ small {
 {
     margin-left: 0px !important;
 }
+.navigation .nav li > a
+{
+    padding-left: 18px;
+    padding-right: 18px;
+}
 
 .content {
     margin-top: 30px;

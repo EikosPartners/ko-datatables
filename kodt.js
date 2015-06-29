@@ -3,11 +3,12 @@
     "use strict";
 
     if ("function" === typeof define && define.amd) {
-        define(["ko", "jquery"], factory);
+        define(["knockout", "jquery", "datatables"], factory);
     } else if ("undefined" !== typeof module) {
         module.exports = factory(
             require("knockout"),
-            require("jquery")
+            require("jquery"),
+            require("datatables")
         );
     } else {
         if (!(window.ko && window.$)) {
@@ -15,7 +16,6 @@
         }
 
         factory(window.ko, window.$);
-
     }
 
 })(function ( ko, $ ) {

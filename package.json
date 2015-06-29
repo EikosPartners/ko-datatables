@@ -7,6 +7,12 @@
     "type": "git",
     "url": "git+https://github.com/EikosPartners/ko-datatables.git"
   },
+  "scripts": {
+    "lint": "./node_modules/.bin/jshint *.js",
+    "hint": "npm run lint",
+    "predocs": "npm run lint",
+    "docs": "./node_modules/.bin/jsdoc -P package.json readme.md *.js"
+  },
   "keywords": [
     "ko",
     "knockout",
@@ -19,5 +25,14 @@
   "bugs": {
     "url": "https://github.com/EikosPartners/ko-datatables/issues"
   },
-  "homepage": "https://github.com/EikosPartners/ko-datatables"
+  "homepage": "https://github.com/EikosPartners/ko-datatables",
+  "dependencies": {
+    "datatables": "^1.10.7",
+    "jquery": "^2.1.4",
+    "knockout": "^3.3.0"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.3.2",
+    "jshint": "^2.8.0"
+  }
 }

@@ -387,14 +387,15 @@
      * @param {Object} settings binding handler settings
      */
     ko.grid.create_column_template = function ( settings ) {
-        var data, index, columns = [ ];
+        var data, index;
+        settings.columnModels = [ ];
 
         if (!(data = settings.dataModel.rows()[0])) {
             throw new Error("grid: cannot generate rows with no data");
         }
 
         for (index in data) {
-            columns.push(new ko.grid.ColumnModel({
+            settings.columnModels.push(new ko.grid.ColumnModel({
                 name: index,
                 type: ko.grid.detect_type(ko.unwrap(data[index]))
             }));

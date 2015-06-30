@@ -165,7 +165,22 @@
      * @return {String} string template
      */
     ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
-        return make_element("input", make_binding({value: this.value}), false);
+        var attrs = make_binding({value: this.value});
+        attrs.type = "text";
+        return make_element("input", attrs, false);
+    };
+
+    /**
+     * checkbox template generator - input as checkbox type
+     * @static
+     * @memberof ko.grid.templates
+     * @function checkbox
+     * @return {String} string template
+     */
+    ko.grid.templates[ko.grid.TYPE_CHECKBOX] = function ( ) {
+        var attrs = make_binding({value: this.value, checked: this.value});
+        attrs.type = "checkbox";
+        return make_element("input", attrs, false);
     };
 
     // ========== DATA MODELS ==========
@@ -371,6 +386,8 @@
      */
     ko.grid.detect_type = function ( item ) {
         switch (item.constructor.name) {
+            case "Boolean":
+                return ko.grid.TYPE_CHECKBOX;
             case "String":
                 return ko.grid.TYPE_STRING;
             default:

@@ -387,17 +387,25 @@
      * @param {Object} settings binding handler settings
      */
     ko.grid.create_column_template = function ( settings ) {
-        var data, index;
+        var data, index, title;
         settings.columnModels = [ ];
 
         if (!(data = settings.dataModel.rows()[0])) {
             throw new Error("grid: cannot generate rows with no data");
         }
 
+        title = function ( name ) {
+            return name
+                .replace(/_/g, " ")
+                .replace(/([a-z])([A-Z])/g, "$1 $2");
+        };
+
         for (index in data) {
             settings.columnModels.push(new ko.grid.ColumnModel({
-                name: index,
-                type: ko.grid.detect_type(ko.unwrap(data[index]))
+                name: index
+            ,   title: ("number" === typeof index) ? index : title(index)
+            ,   type: ko.grid.detect_type(ko.unwrap(data[index]))
+            ,   object: !(data instanceof Array)
             }));
         }
     };

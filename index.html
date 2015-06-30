@@ -105,6 +105,13 @@
         <script src="lib/knockout.debug.js"></script>
 
         <script src="https://rawgit.com/eikospartners/ko-datatables/develop/kodt.js"></script>
+        <script>
+            // override input templates
+            var old_string = ko.grid.templates[ko.grid.TYPE_STRING];
+            ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
+                return old_string.call(this).replace("<input", "<input class=\"form-control\" ");
+            };
+        </script>
 
         <div class="content container">
             <div id="example-zero">

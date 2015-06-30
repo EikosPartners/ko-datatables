@@ -31,3 +31,52 @@ small {
 .content {
     margin-top: 30px;
 }
+
+.dataTables_wrapper {
+    padding: 20px;
+    background: #EFF0F2;
+    border-top-right-radius: 6px;
+    border-top-left-radius: 6px;
+    font-size: 14px;
+}
+.dataTables_wrapper table {
+    border-radius: 6px;
+    box-shadow:0 0 0 1px #BDC3C7 inset;
+    overflow:hidden;
+}
+.dataTables_wrapper input {
+    padding: 4px 6px;
+    line-height:1;
+    font-size:14px;
+    height:28px;
+}
+.dataTables_wrapper th {
+    text-transform: capitalize;
+    position: relative;
+    outline: none;
+}
+.dataTables_wrapper th,
+.dataTables_wrapper td {
+    padding: 6px 10px;
+    border: 1px solid #BDC3C7;
+}
+
+[class^="sorting"]:after {
+    font-family: Flat-UI-Icons;
+    position: absolute;
+    top: 4px;
+    right: 10px;
+}
+.sorting_asc:after {
+    content: "\e602";
+}
+.sorting_desc:after {
+    content: "\e603";
+    top: 10px;
+}
+
+#example-zero-content_info,
+#example-zero-content_paginate
+{
+    display: none;
+}

@@ -165,7 +165,7 @@
      * @return {String} string template
      */
     ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
-        return make_element("span", make_binding({value: this.value}), false);
+        return make_element("input", make_binding({value: this.value}), false);
     };
 
     // ========== DATA MODELS ==========

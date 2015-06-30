@@ -489,7 +489,7 @@
                 settings._searchable = true;
             }
             // form cell and unwrap template if necessary
-            template = $("<td class=\"" +
+            template = $("<td class=\"type_" +
                 model.type + " " +
                 model.name + " " +
                 (model.className || "") + "\">");

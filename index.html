@@ -49,6 +49,7 @@
                             <ul class="dropdown-menu">
                                 <li><a href="#example-zero">Zero Configuration</a></li>
                                 <li><a href="#example-cols">Column Specification</a></li>
+                                <li><a href="#example-temp">Custom Global Templates</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -214,6 +215,51 @@
                 </script>
                 <table id="example-cols-content"></table>
             </div>
+            <div id="example-temp">
+                <h5 id="example-temp-title">Custom Global Templates</h5>
+                <script id="example-temp-script">
+                    ko.grid.templates["toggle"] = function (  ) {
+                        return "<div class='bootstrap-switch-square'>       \
+                            <input type='checkbox'                          \
+                                data-toggle='switch'                        \
+                                data-on-text='Yes'                          \
+                                data-off-text='No'                          \
+                                data-bind='checked:" + this.value + "'\/>   \
+                        <\/div>";
+                    };
+
+                    ko.grid.templates["progress"] = function ( ) {
+                        return "<div class='progress'>                      \
+                            <div class='progress-bar'                       \
+                                data-bind='style:{width:" +
+                                this.value + "() + \"%\"}'                  \
+                            ><\/div> \
+                        <\/div>";
+                    };
+
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-temp-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.json },
+                            columnModels: [
+                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true }
+                            ,   { name: "age",      title: "Completion",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true }
+                            ]
+                        });
+
+                        window.setTimeout(function ( ) {
+                            $("[data-toggle=\"switch\"]").bootstrapSwitch();
+                        });
+                    });
+                </script>
+                <table id="example-temp-content"></table>
+            </div>
         </div>
 
         <script src="lib/highlight.pack.js"></script>
@@ -263,7 +309,9 @@
                         .html()
                         .split("\n")
                         .map(function ( string, index ) {
-                            return string.substr(16);
+                            return string.substr(16)
+                                .replace(/\>/g, "&gt;")
+                                .replace(/\</g, "&lt;");
                         })
                         .join("\n")
                     );

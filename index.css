@@ -123,10 +123,16 @@ td label.checkbox {
     top: -14px;
 }
 
+.progress {
+    margin-bottom: 0;
+}
+
 #example-zero-content_info,
 #example-zero-content_paginate,
 #example-cols-content_info,
-#example-cols-content_paginate
+#example-cols-content_paginate,
+#example-temp-content_info,
+#example-temp-content_paginate
 {
     display: none;
 }

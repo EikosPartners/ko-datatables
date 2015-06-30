@@ -119,6 +119,10 @@ pre {
     border-top-right-radius: 0;
 }
 
+td label.checkbox {
+    top: -14px;
+}
+
 #example-zero-content_info,
 #example-zero-content_paginate
 {

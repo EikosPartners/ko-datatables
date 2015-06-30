@@ -107,7 +107,7 @@
      */
     ko.grid = {
         /**
-         * Ascending order for sorting
+         * ascending order for sorting
          * @static
          * @memberof ko.grid
          * @member SORT_ASC
@@ -115,16 +115,45 @@
          */
         SORT_ASC: "ASC"
         /**
-         * Descending order for sorting
+         * descending order for sorting
          * @static
          * @memberof ko.grid
          * @member SORT_DSC
          * @default DEC
          */
     ,   SORT_DSC: "DEC"
+        /**
+         * control column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_CONTROL
+         * @default control
+         */
     ,   TYPE_CONTROL: "control"
+        /**
+         * text column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_TEXT
+         * @default text
+         */
     ,   TYPE_TEXT: "text"
+        /**
+         * string column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_STRING
+         * @default string
+         */
     ,   TYPE_STRING: "string"
+        /**
+         * checkbox column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_CHECKBOX
+         * @default checkbox
+         */
+    ,   TYPE_CHECKBOX: "checkbox"
     };
 
     // ========== TEMPLATES ==========

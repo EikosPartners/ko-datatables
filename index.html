@@ -48,6 +48,7 @@
                             <span class="dropdown-arrow"></span>
                             <ul class="dropdown-menu">
                                 <li><a href="#example-zero">Zero Configuration</a></li>
+                                <li><a href="#example-cols">Column Specification</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -190,6 +191,28 @@
                     });
                 </script>
                 <table id="example-zero-content"></table>
+            </div>
+            <div id="example-cols">
+                <h5 id="example-cols-title">Column Specification</h5>
+                <script id="example-cols-script">
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-cols-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.json },
+                            columnModels: [
+                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true }
+                            ,   { name: "age",      title: "Age",            type: "text",     object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true }
+                            ]
+                        });
+                    });
+                </script>
+                <table id="example-cols-content"></table>
             </div>
         </div>
 

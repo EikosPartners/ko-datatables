@@ -154,7 +154,7 @@
      * @return {String} text template
      */
     ko.grid.templates[ko.grid.TYPE_TEXT] = function ( ) {
-        make_element("span", make_binding({text: this.value}));
+        return make_element("span", make_binding({text: this.value}));
     };
 
     /**
@@ -165,7 +165,7 @@
      * @return {String} string template
      */
     ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
-        make_element("span", make_binding({value: this.value}), false);
+        return make_element("span", make_binding({value: this.value}), false);
     };
 
     // ========== DATA MODELS ==========

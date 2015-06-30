@@ -112,6 +112,17 @@
             ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
                 return old_string.call(this).replace("<input", "<input class=\"form-control\" ");
             };
+            var old_checkbox = ko.grid.templates[ko.grid.TYPE_CHECKBOX];
+            ko.grid.templates[ko.grid.TYPE_CHECKBOX] = function ( ) {
+                return "<label class=\"checkbox\">" +
+                    old_checkbox.call(this).replace("<input",
+                        "<input class=\"custom-checkbox\" data-toggle=\"checkbox\" ") +
+                    "<span class=\"icons\">" +
+                        "<span class=\"icon-unchecked\"><\/span>" +
+                        "<span class=\"icon-checked\"><\/span>" +
+                    "<\/span>" +
+                "<\/label>";
+            };
         </script>
 
         <div class="data container">

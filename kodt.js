@@ -365,7 +365,7 @@
         }
 
         if (this.title === void 0) {
-            this.title = name
+            this.title = this.name
                 .replace(/_/g, " ")
                 .replace(/([a-z])([A-Z])/g, "$1 $2");
         }

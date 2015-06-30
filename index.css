@@ -76,7 +76,7 @@ pre {
     border-top: none;
     background: #2F4154;
     color: white;
-    padding: 1em;
+    padding: 1em 0 3em !important;
     box-sizing: border-box;
     transition: padding 400ms;
     border: 0;
@@ -86,11 +86,11 @@ pre {
 }
 .collapse {
     height: 0 !important;
-    padding: 0;
+    padding: 0 !important;
 }
 .collapse.in {
     height: auto !important;
-    padding: 1em;
+    padding: 1em 0 3em !important;
 }
 
 [class^="sorting"]:after {
@@ -105,6 +105,18 @@ pre {
 .sorting_desc:after {
     content: "\e603";
     top: 10px;
+}
+
+.content {
+    margin-bottom: 5em;
+}
+.content pre {
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+.content a.btn {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 
 #example-zero-content_info,

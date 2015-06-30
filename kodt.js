@@ -355,7 +355,7 @@
         for (index in data) {
             columns.push(new ko.grid.ColumnModel({
                 name: index,
-                type: ko.grid.detect_type(data[index]())
+                type: ko.grid.detect_type(ko.unwrap(data[index]))
             }));
         }
     };

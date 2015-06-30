@@ -504,7 +504,7 @@
 
             // options construction
             options.columns = settings.columnModels;
-            options.data = settings.dataModel.rows;
+            options.data = ko.unwrap(settings.dataModel.rows);
             options.serverSide = settings.dataModel.request instanceof Function;
             if (!options.dom) {
                 options.dom = (options.allowColumnReorder ? "R" : "") +

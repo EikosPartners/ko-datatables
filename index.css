@@ -34,14 +34,16 @@ small {
 
 .dataTables_wrapper {
     padding: 20px;
-    background: #EFF0F2;
+    border: 2px solid #E7E9EC;
+    box-sizing: border-box;
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
     font-size: 14px;
 }
 .dataTables_wrapper table {
+    width: 100%;
     border-radius: 6px;
-    box-shadow:0 0 0 1px #BDC3C7 inset;
+    box-shadow:0 0 0 1px #E7E9EC inset;
     overflow:hidden;
 }
 .dataTables_wrapper input {
@@ -50,15 +52,45 @@ small {
     font-size:14px;
     height:28px;
 }
+.dataTables_wrapper th,
+.dataTables_wrapper td {
+    padding: 6px 10px;
+    border: 1px solid #E7E9EC;
+    border-left: 0px;
+    border-bottom: 0px;
+}
 .dataTables_wrapper th {
     text-transform: capitalize;
     position: relative;
     outline: none;
+    border-top: 0px;
 }
-.dataTables_wrapper th,
-.dataTables_wrapper td {
-    padding: 6px 10px;
-    border: 1px solid #BDC3C7;
+
+.dataTables_wrapper th:last-child {
+    border-right: 0px;
+}
+
+pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+    background: #2F4154;
+    color: white;
+    padding: 1em;
+    box-sizing: border-box;
+    transition: padding 400ms;
+    border: 0;
+}
+#data + pre {
+     border-radius: 6px;
+}
+.collapse {
+    height: 0 !important;
+    padding: 0;
+}
+.collapse.in {
+    height: auto !important;
+    padding: 1em;
 }
 
 [class^="sorting"]:after {

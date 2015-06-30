@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="lib/bootstrap.min.css" />
         <!-- flatui -->
         <link rel="stylesheet" href="lib/flat-ui.min.css" />
+        <link rel="stylesheet" href="lib/highlight.css" />
 
         <link rel="stylesheet" href="index.css" />
     </head>
@@ -113,68 +114,143 @@
             };
         </script>
 
+        <div class="data container">
+            <script id="data">
+                window.data = {
+                    json: [{
+                        _id         : "5591ebc1bba6a0e2e754f859"
+                    ,   index       : 0
+                    ,   guid        : "b479b3a4-2ad3-4867-8b6f-85c72eac5062"
+                    ,   isActive    : false
+                    ,   balance     : "$2,058.05"
+                    ,   age         : 36
+                    ,   registered  : "2014-06-14T13:16:42 +04:00"
+                    }, {
+                        _id         : "5591ebc13fdb6be3bad69c3d"
+                    ,   index       : 1
+                    ,   guid        : "eb1e2290-1737-4281-a694-9068fb6dede8"
+                    ,   isActive    : true
+                    ,   balance     : "$2,192.42"
+                    ,   age         : 28
+                    ,   registered  : "2015-03-17T22:42:18 +04:00"
+                    }, {
+                        _id         : "5591ebc1934e7bc18d800798"
+                    ,   index       : 2
+                    ,   guid        : "ed0e6d44-b7ef-4d8a-b031-5bc998f909f3"
+                    ,   isActive    : false
+                    ,   balance     : "$3,663.42"
+                    ,   age         : 23
+                    ,   registered  : "2014-08-26T19:41:19 +04:00"
+                    }, {
+                        _id         : "5591ebc1aa81fd735d911df2"
+                    ,   index       : 3
+                    ,   guid        : "a076e0d8-a0f3-43c7-bbf4-313e2c6dcaae"
+                    ,   isActive    : false
+                    ,   balance     : "$3,543.66"
+                    ,   age         : 29
+                    ,   registered  : "2014-11-11T18:19:00 +05:00"
+                    }, {
+                        _id         : "5591ebc14172c849c9ca0f18"
+                    ,   index       : 4
+                    ,   guid        : "78031ccf-b70d-41d8-adf2-2060877ac8a0"
+                    ,   isActive    : true
+                    ,   balance     : "$2,838.39"
+                    ,   age         : 37
+                    ,   registered  : "2014-11-26T20:28:21 +05:00"
+                    }]
+                };
+            </script>
+
+        </div>
+
         <div class="content container">
             <div id="example-zero">
                 <h5 id="example-zero-title">Zero Configuration</h5>
                 <script id="example-zero-script">
                     window.setTimeout(function ( ) {
-                        var element, data;
-
-                        data = [{
-                            "_id": "5591ebc1bba6a0e2e754f859"
-                        ,   "index": 0
-                        ,   "guid": "b479b3a4-2ad3-4867-8b6f-85c72eac5062"
-                        ,   "isActive": false
-                        ,   "balance": "$2,058.05"
-                        ,   "age": 36
-                        ,   "registered": "2014-06-14T13:16:42 +04:00"
-                        }, {
-                            "_id": "5591ebc13fdb6be3bad69c3d"
-                        ,   "index": 1
-                        ,   "guid": "eb1e2290-1737-4281-a694-9068fb6dede8"
-                        ,   "isActive": true
-                        ,   "balance": "$2,192.42"
-                        ,   "age": 28
-                        ,   "registered": "2015-03-17T22:42:18 +04:00"
-                        }, {
-                            "_id": "5591ebc1934e7bc18d800798"
-                        ,   "index": 2
-                        ,   "guid": "ed0e6d44-b7ef-4d8a-b031-5bc998f909f3"
-                        ,   "isActive": false
-                        ,   "balance": "$3,663.42"
-                        ,   "age": 23
-                        ,   "registered": "2014-08-26T19:41:19 +04:00"
-                        }, {
-                            "_id": "5591ebc1aa81fd735d911df2"
-                        ,   "index": 3
-                        ,   "guid": "a076e0d8-a0f3-43c7-bbf4-313e2c6dcaae"
-                        ,   "isActive": false
-                        ,   "balance": "$3,543.66"
-                        ,   "age": 29
-                        ,   "registered": "2014-11-11T18:19:00 +05:00"
-                        }, {
-                            "_id": "5591ebc14172c849c9ca0f18"
-                        ,   "index": 4
-                        ,   "guid": "78031ccf-b70d-41d8-adf2-2060877ac8a0"
-                        ,   "isActive": true
-                        ,   "balance": "$2,838.39"
-                        ,   "age": 37
-                        ,   "registered": "2014-11-26T20:28:21 +05:00"
-                        }];
+                        var element;
 
                         element = document.getElementById("example-zero-content");
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: data }
+                            dataModel: { rows: window.data.json }
                         });
                     });
-
                 </script>
                 <table id="example-zero-content"></table>
             </div>
         </div>
 
+        <script src="lib/highlight.pack.js"></script>
+        <script>
+            window.setTimeout(function ( ) {
+                $("#data").each(function (  ) {
+                    var $this = $(this)
+                    ,   pre = $("<pre class=\"collapse\" style=\"height:0\">")
+                    ,   code = $("<code class=\"js\">")
+                    ,   btn = $("<a class=\"btn btn-primary pull-right\" " +
+                        "href=\"#\">View Data<\/a>")
+                    ,   state = false;
+                    code.html($this
+                        .html()
+                        .split("\n")
+                        .map(function ( string, index ) {
+                            return string.substr(12);
+                        })
+                        .join("\n")
+                    );
+
+                    btn.click(function ( ) {
+                        state = !state;
+                        if (state) {
+                            btn.text("Hide Data");
+                        } else {
+                            btn.text("Show Data");
+                        }
+                        pre.collapse("toggle");
+                    });
+
+                    pre.append(code);
+                    $(this).after(pre);
+                    pre.after(btn);
+                    hljs.highlightBlock(pre[0]);
+                });
+            });
+            window.setTimeout(function ( ) {
+                $(".content>div").each(function (  ) {
+                    var id = $(this).attr("id")
+                    ,   pre = $("<pre class=\"collapse\" style=\"height:0\">")
+                    ,   code = $("<code class=\"js\">")
+                    ,   btn = $("<a class=\"btn btn-primary pull-right\" " +
+                        "href=\"#\">View Source<\/a>")
+                    ,   state = false
+                    code.html($("#" + id + "-script")
+                        .html()
+                        .split("\n")
+                        .map(function ( string, index ) {
+                            return string.substr(16);
+                        })
+                        .join("\n")
+                    );
+                    pre.append(code);
+                    $("#" + id + "-content").parent().after(pre);
+                    pre.after(btn);
+                    btn.click(function ( e ) {
+                        e.preventDefault();
+                        state = !state;
+                        if (state) {
+                            btn.text("Hide Source");
+                        } else {
+                            btn.text("View Source");
+                        }
+                        pre.collapse("toggle");
+                    });
+                    hljs.highlightBlock(pre[0]);
+
+                });
+            });
+        </script>
 
     </body>
 </html>

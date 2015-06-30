@@ -127,6 +127,47 @@
     ,   TYPE_STRING: "string"
     };
 
+    // ========== TEMPLATES ==========
+
+    /**
+     * @namespace ko.grid.templates
+     * @memberof ko.grid
+     */
+    ko.grid.templates = {  };
+
+    /**
+     * control template generator
+     * @static
+     * @memberof ko.grid.templates
+     * @function control
+     * @return {String} control template
+     */
+    ko.grid.templates[ko.grid.TYPE_CONTROL] = function ( ) {
+        return "";
+    };
+
+    /**
+     * text template generator - no input, display value only
+     * @static
+     * @memberof ko.grid.templates
+     * @function text
+     * @return {String} text template
+     */
+    ko.grid.templates[ko.grid.TYPE_TEXT] = function ( ) {
+        make_element("span", make_binding({text: this.value}));
+    };
+
+    /**
+     * string template generator - input as string type
+     * @static
+     * @memberof ko.grid.templates
+     * @function string
+     * @return {String} string template
+     */
+    ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
+        make_element("span", make_binding({value: this.value}), false);
+    };
+
     // ========== DATA MODELS ==========
 
     /**

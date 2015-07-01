@@ -126,52 +126,73 @@
                 "<\/label>";
             };
         </script>
-
         <div class="data container">
+            <script src="lib/random.js"></script>
             <script id="data">
-                window.data = {
-                    json: [{
-                        _id         : "5591ebc1bba6a0e2e754f859"
-                    ,   index       : 0
-                    ,   guid        : "b479b3a4-2ad3-4867-8b6f-85c72eac5062"
-                    ,   isActive    : false
-                    ,   balance     : "$2,058.05"
-                    ,   age         : 36
-                    ,   registered  : "2014-06-14T13:16:42 +04:00"
-                    }, {
-                        _id         : "5591ebc13fdb6be3bad69c3d"
-                    ,   index       : 1
-                    ,   guid        : "eb1e2290-1737-4281-a694-9068fb6dede8"
-                    ,   isActive    : true
-                    ,   balance     : "$2,192.42"
-                    ,   age         : 28
-                    ,   registered  : "2015-03-17T22:42:18 +04:00"
-                    }, {
-                        _id         : "5591ebc1934e7bc18d800798"
-                    ,   index       : 2
-                    ,   guid        : "ed0e6d44-b7ef-4d8a-b031-5bc998f909f3"
-                    ,   isActive    : false
-                    ,   balance     : "$3,663.42"
-                    ,   age         : 23
-                    ,   registered  : "2014-08-26T19:41:19 +04:00"
-                    }, {
-                        _id         : "5591ebc1aa81fd735d911df2"
-                    ,   index       : 3
-                    ,   guid        : "a076e0d8-a0f3-43c7-bbf4-313e2c6dcaae"
-                    ,   isActive    : false
-                    ,   balance     : "$3,543.66"
-                    ,   age         : 29
-                    ,   registered  : "2014-11-11T18:19:00 +05:00"
-                    }, {
-                        _id         : "5591ebc14172c849c9ca0f18"
-                    ,   index       : 4
-                    ,   guid        : "78031ccf-b70d-41d8-adf2-2060877ac8a0"
-                    ,   isActive    : true
-                    ,   balance     : "$2,838.39"
-                    ,   age         : 37
-                    ,   registered  : "2014-11-26T20:28:21 +05:00"
-                    }]
-                };
+                (function ( ) {
+                    var data, gen_json, now, now_minus_3m, index, noise, v;
+
+                    now = new Date();
+                    now_minus_3m = new Date();
+                    now_minus_3m.setDate(now_minus_3m.getDate() - 90);
+
+                    window.data = data = {
+                        json: [ ]
+                    };
+
+                    gen_json = function ( index ) {
+                        var now
+                        return {
+                            _index      : index
+                        ,   _id         : random.string("[l{4}][i(9){2}]").toUpperCase()
+                        ,   guid        : random.string("[a{8}]-[a{4}]-[a{4}]-[a{4}]-[a{12}]")
+                        ,   isActive    : random.bool()
+                        ,   balance     : parseFloat(random.number(500, 4000).toFixed(2))
+                        ,   age         : random.integer(12, 88)
+                        ,   registered  : random.date(now_minus_3m, now)
+                        }
+                    };
+
+                    for (index = 0; index < 100; index++) {
+                        data.json.push(gen_json(index));
+                    }
+
+                    noise = function ( freq ) {
+                        var index, row, key, d;
+                        for (index in data.json) {
+                            if (Math.random() < freq) {
+                                row = data.json[index];
+                                d = gen_json();
+                                for (key in d) {
+                                    if (key[0] !== "_") {
+                                        if (row[key] instanceof Function) {
+                                            row[key](d[key]);
+                                        } else {
+                                            row[key] = d[key];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    window.noise = function ( freq, timeout ) {
+                        if (v) {
+                            window.clearInterval(v);
+                        }
+                        if (!timeout || timeout < 0) {
+                            v = null;
+                            noise(freq);
+                        } else {
+                            v = setInterval(function () {
+                                noise(freq);
+                            }, timeout);
+                        }
+                    }
+
+                })();
+
+
             </script>
 
         </div>
@@ -187,7 +208,7 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json }
+                            dataModel: { rows: window.data.json.slice(0, 10) }
                         });
                     });
                 </script>
@@ -203,7 +224,7 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json },
+                            dataModel: { rows: window.data.json.slice(0, 5) },
                             columnModels: [
                                 { name: "isActive", title: "Active",         type: "checkbox", object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true }
@@ -244,7 +265,7 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json },
+                            dataModel: { rows: window.data.json.slice(0, 5) },
                             columnModels: [
                                 { name: "isActive", title: "Active",         type: "toggle",   object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true }

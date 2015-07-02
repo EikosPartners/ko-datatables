@@ -39,6 +39,7 @@ small {
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
     font-size: 14px;
+    overflow-x: auto;
 }
 .dataTables_wrapper table {
     width: 100%;
@@ -125,6 +126,10 @@ td label.checkbox {
 
 .progress {
     margin-bottom: 0;
+}
+
+.btn.noise {
+    margin-left: 20px;
 }
 
 #example-zero-content_info,

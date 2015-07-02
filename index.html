@@ -50,6 +50,7 @@
                                 <li><a href="#example-zero">Zero Configuration</a></li>
                                 <li><a href="#example-cols">Column Specification</a></li>
                                 <li><a href="#example-temp">Custom Global Templates</a></li>
+                                <li><a href="#example-perf">Performance</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -130,39 +131,90 @@
             <script src="lib/random.js"></script>
             <script id="data">
                 (function ( ) {
-                    var data, gen_json, now, now_minus_3m, index, noise, v;
+                    var data, generators,
+                    now, now_minus_3m, index, noise, v;
 
                     now = new Date();
                     now_minus_3m = new Date();
                     now_minus_3m.setDate(now_minus_3m.getDate() - 90);
 
                     window.data = data = {
-                        json: [ ]
+                        mock: [ ]
+                    ,   perf: [ ]
                     };
 
-                    gen_json = function ( index ) {
-                        var now
-                        return {
-                            _index      : index
-                        ,   _id         : random.string("[l{4}][i(9){2}]").toUpperCase()
-                        ,   guid        : random.string("[a{8}]-[a{4}]-[a{4}]-[a{4}]-[a{12}]")
-                        ,   isActive    : random.bool()
-                        ,   balance     : parseFloat(random.number(500, 4000).toFixed(2))
-                        ,   age         : random.integer(12, 88)
-                        ,   registered  : random.date(now_minus_3m, now)
+                    window.generators = generators = {
+                        mock: function ( index ) {
+                            return {
+                                _index      : index
+                            ,   _id         : random.string("[l{4}][i(9){2}]").toUpperCase()
+                            ,   guid        : random.string("[a{8}]-[a{4}]-[a{4}]-[a{4}]-[a{12}]")
+                            ,   isActive    : random.bool()
+                            ,   balance     : parseFloat(random.number(500, 4000).toFixed(2))
+                            ,   age         : random.integer(12, 88)
+                            ,   registered  : random.date(now_minus_3m, now)
+                            };
+                        },
+                        perf: function ( index ) {
+                            var id = random.integer(1, 3)
+                            ,   price = function ( ) {
+                                    return parseFloat(random.number(1000).toFixed(5))
+                                }
+                            ,   doubles = function ( ) {
+                                    var l = random.letter("ABCDEF");
+                                    return l + l;
+                                }
+                            ;
+                            return {
+                              "rejected"        : random.string("[bool]"),
+                              "desc"            : "",
+                              "account"         : "acct_" + id,
+                              "person"          : "person_acct_" + id,
+                              "method"          : "method_acct_" + id,
+                              "order_code"      : "S" + doubles(),
+                              "order_bcode"     : "X" + doubles(),
+                              "order_type"      : "STOP",
+                              "_order_id"        : index,
+                              "quant"           : random.integer(1000),
+                              "quant_filled"    : random.integer(1000),
+                              "quant_last"      : random.integer(1000),
+                              "quant_open"      : random.integer(1000),
+                              "price_limit"     : price(),
+                              "price_last"      : price(),
+                              "price_stop"      : price(),
+                              "price"           : price(),
+                              "venue"           : "V" + doubles(),
+                              "gateway"         : "G" + doubles(),
+                              "price_average"   : price(),
+                              "currency"        : "USD",
+                              "side"            : random.choose(["BUY","SELL"]),
+                              "tif"             : "TIF",
+                              "reject_reason"   : random.choose(["", "REJECTED"]),
+                              "state"           : random.choose(["NEW", "PARTIAL"]),
+                              "event"           : "REPORT",
+                              "time_transaction": random.date().toISOString(),
+                              "time_streamer"   : random.date().toISOString(),
+                              "time_middleware" : random.date().toISOString(),
+                              "manual"          : random.choose(["NO", "YES"]),
+                              "id_original"     : random.integer(10000),
+                              "time_placement"  : random.date().toISOString()
+                            }
                         }
                     };
 
                     for (index = 0; index < 100; index++) {
-                        data.json.push(gen_json(index));
+                        data.mock.push(generators.mock(index));
+                    }
+                    for (index = 0; index < 50; index++) {
+                        data.perf.push(generators.perf(index));
                     }
 
-                    noise = function ( freq ) {
+                    noise = function ( data, gen, freq ) {
                         var index, row, key, d;
-                        for (index in data.json) {
+                        for (index in data) {
                             if (Math.random() < freq) {
-                                row = data.json[index];
-                                d = gen_json();
+                                row = data[index];
+                                d = gen();
                                 for (key in d) {
                                     if (key[0] !== "_") {
                                         if (row[key] instanceof Function) {
@@ -176,19 +228,21 @@
                         }
                     }
 
-                    window.noise = function ( freq, timeout ) {
+                    window.noise = function ( set, freq, timeout ) {
                         if (v) {
                             window.clearInterval(v);
                         }
                         if (!timeout || timeout < 0) {
                             v = null;
-                            noise(freq);
+                            noise(data[set], generators[set], freq);
                         } else {
                             v = setInterval(function () {
-                                noise(freq);
+                                noise(data[set], generators[set], freq);
                             }, timeout);
                         }
-                    }
+                    };
+                    window.mock_noise = window.noise.bind(null, "mock");
+                    window.perf_noise = window.noise.bind(null, "perf");
 
                 })();
 
@@ -198,7 +252,7 @@
         </div>
 
         <div class="content container">
-            <div id="example-zero">
+            <div id="example-zero" data="mock">
                 <h5 id="example-zero-title">Zero Configuration</h5>
                 <script id="example-zero-script">
                     window.setTimeout(function ( ) {
@@ -208,7 +262,7 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json.slice(0, 10) }
+                            dataModel: { rows: window.data.mock.slice(0, 10) }
                         });
                     });
                 </script>
@@ -224,8 +278,8 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json.slice(0, 5) },
-                            columnModels: [
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   columnModels: [
                                 { name: "isActive", title: "Active",         type: "checkbox", object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true }
                             ,   { name: "age",      title: "Age",            type: "text",     object: true }
@@ -265,8 +319,8 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.json.slice(0, 5) },
-                            columnModels: [
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   columnModels: [
                                 { name: "isActive", title: "Active",         type: "toggle",   object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true }
                             ,   { name: "age",      title: "Completion",            type: "progress", object: true }
@@ -280,6 +334,35 @@
                     });
                 </script>
                 <table id="example-temp-content"></table>
+            </div>
+            <div id="example-perf" data="perf">
+                <h5 id="example-perf-title">Performance</h5>
+                <script id="example-perf-script">
+                    window.setTimeout(function ( ) {
+                        var element, dm, other = [  ], index;
+
+                        element = document.getElementById("example-perf-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        dm = new ko.grid.DataModel({
+                            rows: window.data.perf
+                        });
+
+                        ko.applyBindingsToNode(element, null, {
+                            options: { paging:false, dom:"t" }
+                        ,   dataModel: dm
+                        });
+
+                        for ( index = 50; index < 100; index++ ) {
+                            other.push(generators.perf(index));
+                        }
+
+                        setInterval(function (  ) {
+                            dm.rows.push(other.pop());
+                        }, 5000);
+                    });
+                </script>
+                <table id="example-perf-content"></table>
             </div>
         </div>
 
@@ -321,10 +404,13 @@
             window.setTimeout(function ( ) {
                 $(".content>div").each(function (  ) {
                     var id = $(this).attr("id")
+                    ,   data = $(this).attr("data")
                     ,   pre = $("<pre class=\"collapse\" style=\"height:0\">")
                     ,   code = $("<code class=\"js\">")
-                    ,   btn = $("<a class=\"btn btn-primary pull-right\" " +
+                    ,   src = $("<a class=\"btn btn-primary pull-right\" " +
                         "href=\"#\">View Source<\/a>")
+                    ,   noise = $("<a class=\"btn btn-primary pull-right noise\" " +
+                        "href=\"#\">Noise<\/a>")
                     ,   state = false
                     code.html($("#" + id + "-script")
                         .html()
@@ -338,8 +424,11 @@
                     );
                     pre.append(code);
                     $("#" + id + "-content").parent().after(pre);
-                    pre.after(btn);
-                    btn.click(function ( e ) {
+                    pre.after(src);
+                    if (data) {
+                        pre.after(noise);
+                    }
+                    src.click(function ( e ) {
                         e.preventDefault();
                         state = !state;
                         if (state) {
@@ -348,6 +437,12 @@
                             btn.text("View Source");
                         }
                         pre.collapse("toggle");
+                    });
+                    noise.click(function ( e ) {
+                        e.preventDefault();
+                        window.noise(data,
+                            random.number(0.2, 0.6),
+                            random.number(100, 600));
                     });
                     hljs.highlightBlock(pre[0]);
 

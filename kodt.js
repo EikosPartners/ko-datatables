@@ -602,25 +602,32 @@
             table = $(element).dataTable(options);
             api = table.api();
 
-            settings.dataModel.rows.subscribe(function ( items ) {
-                var nodes, count;
-
-                nodes = api.rows().nodes();
-
-                // unregister
-                if (nodes.length) {
-                    ko.utils.arrayForEach(nodes, function ( node ) {
-                        ko.cleanNode(node);
-                    });
-                }
-
-                count = settings.dataModel.rows.length;
-
-                table._fnAjaxUpdateDraw({
-                    aaData: items,
-                    iTotalRecords: count,
-                    iTotalDisplayRecords: count
+            var before, diff;
+            diff = function ( arr1, arr2 ) {
+                return arr1.filter(function ( item ) {
+                    return !~arr2.indexOf(item);
                 });
+            };
+
+            settings.dataModel.rows.subscribe(function ( items ) {
+                before = items.slice(0);
+            }, null, "beforeChange");
+            settings.dataModel.rows.subscribe(function ( items ) {
+                //var nodes, count;
+                var removed = diff(before, items)
+                ,   added = diff(items, before)
+                ;
+
+                removed.forEach(function ( item ) {
+                    api.row(function ( index, data ) {
+                        return item === data;
+                    }).remove();
+                });
+
+                api.rows.add(added);
+
+                api.draw();
+
             });
 
             if (settings.api instanceof Function) {

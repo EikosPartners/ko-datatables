@@ -39,7 +39,6 @@ small {
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
     font-size: 14px;
-    overflow-x: auto;
 }
 .dataTables_wrapper table {
     width: 100%;

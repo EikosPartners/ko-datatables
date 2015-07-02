@@ -108,7 +108,7 @@
         <script src="lib/jquery.dataTables.js"></script>
         <script src="lib/knockout.debug.js"></script>
 
-        <script src="https://rawgit.com/eikospartners/ko-datatables/develop/kodt.js"></script>
+        <script src="../ko-datatables/kodt.js"></script>
         <script>
             // override input templates
             var old_string = ko.grid.templates[ko.grid.TYPE_STRING];
@@ -339,7 +339,7 @@
                 <h5 id="example-perf-title">Performance</h5>
                 <script id="example-perf-script">
                     window.setTimeout(function ( ) {
-                        var element, dm, other = [  ], index;
+                        var element, dm, index;
 
                         element = document.getElementById("example-perf-content");
                         element.setAttribute("data-bind", "grid:$data");
@@ -349,17 +349,22 @@
                         });
 
                         ko.applyBindingsToNode(element, null, {
-                            options: { paging:false, dom:"t" }
+                            options: {
+                                paging  : false
+                            ,   dom     : "t"
+                            ,   scrollY : 300
+                            ,   scrollX : true
+                        }
+                        ,   readonly: true
                         ,   dataModel: dm
                         });
 
-                        for ( index = 50; index < 100; index++ ) {
-                            other.push(generators.perf(index));
-                        }
-
+                        /*index = 50;
                         setInterval(function (  ) {
-                            dm.rows.push(other.pop());
-                        }, 5000);
+                            var rows = dm.rows();
+                            dm.rows.remove(rows[random.integer(rows.length)]);
+                            dm.rows.push(generators.perf(index++));
+                        }, 5000);*/
                     });
                 </script>
                 <table id="example-perf-content"></table>

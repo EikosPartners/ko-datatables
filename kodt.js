@@ -445,7 +445,7 @@
         for (index in data) {
             settings.columnModels.push(new ko.grid.ColumnModel({
                 name: index
-            ,   type: (index.indexOf("_") === 0)
+            ,   type: (settings.readonly || index.indexOf("_") === 0)
                 ? "text"
                 : ko.grid.detect_type(ko.unwrap(data[index]))
             ,   object: !(data instanceof Array)
@@ -487,7 +487,7 @@
             }
             // form cell and unwrap template if necessary
             template = $("<td class=\"type_" +
-                model.type + " " +
+                model.type + " name_" +
                 model.name + " " +
                 (model.className || "") + "\">");
             model = (model.template instanceof Function)

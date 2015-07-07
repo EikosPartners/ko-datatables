@@ -154,3 +154,8 @@ tr
     display: none;
 }
 
+[id$="selected"] > pre {
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+

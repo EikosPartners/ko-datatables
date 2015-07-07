@@ -76,7 +76,6 @@ pre {
     border-top: none;
     background: #2F4154;
     color: white;
-    padding: 1em 0 3em !important;
     box-sizing: border-box;
     transition: padding 400ms;
     border: 0;
@@ -90,7 +89,7 @@ pre {
 }
 .collapse.in {
     height: auto !important;
-    padding: 1em 0 3em !important;
+    padding-bottom: 3em !important;
 }
 
 [class^="sorting"]:after {

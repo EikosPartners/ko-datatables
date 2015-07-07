@@ -447,7 +447,8 @@
                                 // force update
                                 active.notifySubscribers(active());
                         },  columnModels: [
-                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                                { name: "_index",   title: "",               type: "text",     object: true }
+                            ,   { name: "isActive", title: "Active",         type: "toggle",   object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
                             ,   { name: "age",      title: "Age",            type: "progress", object: true }
                             ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
@@ -457,11 +458,14 @@
 
                         element = document.getElementById("example-psel-selected-code");
                         element.parent = element.parentNode;
+                        element.parent.style.borderRadius = 0;
 
                         ko.computed(function ( ) {
-                            var code = JSON.stringify(ko.toJS(selected), null, 2);
+                            var code = JSON.stringify(ko.toJS(selected).map(function ( item ) {
+                                return item._index;
+                            }), null);
                             element.innerHTML = code.split("\n").map(function ( line ) {
-                                return "    " + line;
+                                return "    " + line.split(",").join(", ");
                             }).join("\n");
                             element.parent.innerHTML = "";
                             element.parent.appendChild(element);

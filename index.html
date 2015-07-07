@@ -378,7 +378,7 @@
                         ko.applyBindingsToNode(element, null, {
                             dataModel: { rows: window.data.mock.slice(0, 5) }
                         ,   columnModels: [
-                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
                             ,   { name: "age",      title: "Age",            type: "progress", object: true }
                             ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
@@ -408,7 +408,7 @@
                                 // force update
                                 active.notifySubscribers(active());
                         },  columnModels: [
-                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
                             ,   { name: "age",      title: "Age",            type: "progress", object: true }
                             ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
@@ -448,7 +448,7 @@
                                 active.notifySubscribers(active());
                         },  columnModels: [
                                 { name: "_index",   title: "",               type: "text",     object: true }
-                            ,   { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
                             ,   { name: "age",      title: "Age",            type: "progress", object: true }
                             ,   { name: "balance",  title: "Balance",        type: "text",     object: true,

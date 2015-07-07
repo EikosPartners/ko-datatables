@@ -50,6 +50,9 @@
                                 <li><a href="#example-zero">Zero Configuration</a></li>
                                 <li><a href="#example-cols">Column Specification</a></li>
                                 <li><a href="#example-temp">Custom Global Templates</a></li>
+                                <li><a href="#example-tmpl">Custom Local Templates</a></li>
+                                <li><a href="#example-rowa">Row Access</a></li>
+                                <li><a href="#example-psel">Pseudo Selection</a></li>
                                 <li><a href="#example-perf">Performance</a></li>
                             </ul>
                         </li>
@@ -108,10 +111,11 @@
         <script src="lib/jquery.dataTables.js"></script>
         <script src="lib/knockout.debug.js"></script>
 
+        <!--
         <script src="https://rawgit.com/eikospartners/ko-datatables/develop/kodt.js"></script>
-        <!-- local
+        --><!-- local -->
         <script src="../ko-datatables/kodt.js"></script>
-        <!- -->
+        <!-- -->
         <script>
             // override input templates
             var old_string = ko.grid.templates[ko.grid.TYPE_STRING];
@@ -155,10 +159,10 @@
                             ,   isActive    : random.bool()
                             ,   balance     : parseFloat(random.number(500, 4000).toFixed(2))
                             ,   age         : random.integer(12, 88)
-                            ,   registered  : random.date(now_minus_3m, now)
+                            ,   registered  : random.date()
                             };
                         },
-                        perf: function ( index ) {
+                        /*perf: function ( index ) {
                             var id = random.integer(1, 3)
                             ,   price = function ( ) {
                                     return parseFloat(random.number(1000).toFixed(5))
@@ -202,15 +206,17 @@
                               "id_original"     : random.integer(10000),
                               "time_placement"  : random.date().toISOString()
                             }
-                        }
+                        }*/
                     };
 
                     for (index = 0; index < 100; index++) {
                         data.mock.push(generators.mock(index));
                     }
+                    /*
                     for (index = 0; index < 50; index++) {
                         data.perf.push(generators.perf(index));
                     }
+                    */
 
                     noise = function ( data, gen, freq ) {
                         var index, row, key, d;
@@ -245,7 +251,7 @@
                         }
                     };
                     window.mock_noise = window.noise.bind(null, "mock");
-                    window.perf_noise = window.noise.bind(null, "perf");
+                    //window.perf_noise = window.noise.bind(null, "perf");
 
                 })();
 
@@ -297,20 +303,19 @@
                 <h5 id="example-temp-title">Custom Global Templates</h5>
                 <script id="example-temp-script">
                     ko.grid.templates["toggle"] = function (  ) {
-                        return "<div class='bootstrap-switch-square'>       \
-                            <input type='checkbox'                          \
-                                data-toggle='switch'                        \
-                                data-on-text='Yes'                          \
-                                data-off-text='No'                          \
-                                data-bind='checked:" + this.value + "'\/>   \
+                        return "<div class='bootstrap-switch-square'>\
+                            <input type='checkbox'\
+                                data-toggle='switch'\
+                                data-on-text='Yes'\
+                                data-off-text='No'\
+                                data-bind='checked:value'\/>\
                         <\/div>";
                     };
 
                     ko.grid.templates["progress"] = function ( ) {
-                        return "<div class='progress'>                      \
-                            <div class='progress-bar'                       \
-                                data-bind='style:{width:" +
-                                this.value + "() + \"%\"}'                  \
+                        return "<div class='progress'>\
+                            <div class='progress-bar'\
+                                data-bind='style:{width:value() + \"%\"}'\
                             ><\/div> \
                         <\/div>";
                     };
@@ -326,7 +331,7 @@
                         ,   columnModels: [
                                 { name: "isActive", title: "Active",         type: "toggle",   object: true }
                             ,   { name: "guid",     title: "Identification", type: "text",     object: true }
-                            ,   { name: "age",      title: "Completion",            type: "progress", object: true }
+                            ,   { name: "age",      title: "Completion",     type: "progress", object: true }
                             ,   { name: "balance",  title: "Balance",        type: "text",     object: true }
                             ]
                         });
@@ -338,7 +343,138 @@
                 </script>
                 <table id="example-temp-content"></table>
             </div>
-            <div id="example-perf" data="perf">
+            <div id="example-tmpl">
+                <h5 id="example-tmpl-title">Custom Local Templates</h5>
+                <script type="text/html" id="tmpl_temp">
+                    <!-- ko foreach:value().split("-") -->
+                        <code data-bind="text:$data.toUpperCase()"></code>
+                    <!-- /ko -->
+                </script>
+                <script id="example-tmpl-script">
+                    window.format_dollar = function ( n ) {
+                        var
+                            // get digits after decimal to show
+                            d = n % 1 > 0 ? 2 : 0,
+                            // get sign
+                            s = n < 0,
+                            // get integer fixed to 0 as string and set n to fixed to d
+                            i = String(parseInt(n = Math.abs(+n || 0).toFixed(d))),
+                            // get number of digits before first comma (12333) -> 2
+                            j = (j = i.length) > 3 ? j % 3 : 0;
+                            // start with sign, add digits before first command and a comma
+                        return (s ? '(' : '') + '$' + (j ? i.substr(0, j) + ',' : '') +
+                            // get all digits after first comma, before decimal
+                            i.substr(j).replace(/(\d{3})(?=\d)/g, '$1,') +
+                            // get all digits after decimal if wanted
+                            (d ? '.' + Math.abs(n - i).toFixed(d).slice(2) : '')
+                            + (s ? ')' : '');
+                    };
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-tmpl-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   columnModels: [
+                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                            ]
+                        });
+                    });
+                </script>
+                <table id="example-tmpl-content"></table>
+            </div>
+            <div id="example-rowa">
+                <h5 id="example-rowa-title">Row Access</h5>
+                <script id="example-rowa-script">
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-rowa-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   oncreaterow: function ( row ) {
+                                var active, node = $(row.node());
+                                (active = row.data().isActive).subscribe(function ( change ) {
+                                    node[(change ? "add" : "remove") + "Class"]("highlight");
+                                });
+                                // force update
+                                active.notifySubscribers(active());
+                        },  columnModels: [
+                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                            ]
+                        });
+                    });
+                </script>
+                <table id="example-rowa-content"></table>
+            </div>
+            <div id="example-psel">
+                <h5 id="example-psel-title">Pseudo Selection</h5>
+                <script id="example-psel-script">
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-psel-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        selected = ko.observableArray([ ]);
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   oncreaterow: function ( row ) {
+                                var active, node = $(row.node()), data;
+
+                                (active = (data = row.data()).isActive).subscribe(function ( change ) {
+                                    if (change) {
+                                        node.addClass("highlight");
+                                        selected.push(data);
+                                    } else {
+                                        node.removeClass("highlight");
+                                        selected.remove(data);
+                                    }
+                                });
+                                // force update
+                                active.notifySubscribers(active());
+                        },  columnModels: [
+                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                            ]
+                        });
+
+                        element = document.getElementById("example-psel-selected-code");
+                        element.parent = element.parentNode;
+
+                        ko.computed(function ( ) {
+                            var code = JSON.stringify(ko.toJS(selected), null, 2);
+                            element.innerHTML = code.split("\n").map(function ( line ) {
+                                return "    " + line;
+                            }).join("\n");
+                            element.parent.innerHTML = "";
+                            element.parent.appendChild(element);
+                            hljs.highlightBlock(element.parent);
+                        });
+                    });
+                </script>
+                <span id="example-psel-selected">
+                    <pre><code class="json" id="example-psel-selected-code"></code></pre>
+                </span>
+                <table id="example-psel-content"></table>
+            </div>
+            <!--<div id="example-perf" data="perf">
                 <h5 id="example-perf-title">Performance</h5>
                 <script id="example-perf-script">
                     window.setTimeout(function ( ) {
@@ -371,7 +507,7 @@
                     });
                 </script>
                 <table id="example-perf-content"></table>
-            </div>
+            </div>-->
         </div>
 
         <script src="lib/highlight.pack.js"></script>

@@ -149,19 +149,8 @@ tr
     background: rgba(26, 188, 156, 0.2);
 }
 
-#example-zero-content_info,
-#example-zero-content_paginate,
-#example-cols-content_info,
-#example-cols-content_paginate,
-#example-tmpl-content_info,
-#example-tmpl-content_paginate,
-#example-rowa-content_info,
-#example-rowa-content_paginate,
-#example-psel-content_info,
-#example-psel-content_paginate,
-#example-temp-content_info,
-#example-temp-content_paginate
-{
+.no-info .dataTables_paginate,
+.no-info .dataTables_info {
     display: none;
 }
 

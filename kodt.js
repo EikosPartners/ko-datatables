@@ -183,7 +183,7 @@
      * @return {String} text template
      */
     ko.grid.templates[ko.grid.TYPE_TEXT] = function ( ) {
-        return make_element("span", make_binding({text: this.value}));
+        return make_element("span", make_binding({text: "value"}));
     };
 
     /**
@@ -194,7 +194,7 @@
      * @return {String} string template
      */
     ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
-        var attrs = make_binding({value: this.value});
+        var attrs = make_binding({value: "value"});
         attrs.type = "text";
         return make_element("input", attrs, false);
     };
@@ -207,7 +207,7 @@
      * @return {String} string template
      */
     ko.grid.templates[ko.grid.TYPE_CHECKBOX] = function ( ) {
-        var attrs = make_binding({value: this.value, checked: this.value});
+        var attrs = make_binding({value: "value", checked: "value"});
         attrs.type = "checkbox";
         return make_element("input", attrs, false);
     };
@@ -466,7 +466,7 @@
         var row_template = $("<tr>")
         ,   template
         ,   index
-        ,   model;
+        ,   model, $model;
 
         if (!settings.columnModels) {
             ko.grid.create_column_template(settings);
@@ -490,13 +490,18 @@
                 model.type + " name_" +
                 model.name + " " +
                 (model.className || "") + "\">");
-            model = (model.template instanceof Function)
-                ? model.template() : model.template;
+            $model = $((model.template instanceof Function)
+                ? model.template() : model.template);
 
             // add model to template
-            template.append(model);
+            template.append(
+                $("<!-- ko with: {value: " + model.value + ", row: $row} -->"));
+            template.append($model);
+            template.append(
+                $("<!-- /ko -->"));
             // add template to row
             row_template.append(template);
+
         }
 
         // unwrap from jquery

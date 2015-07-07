@@ -396,6 +396,112 @@
 
     // ========== SELECTION MODELS ==========
 
+    /**
+     * base selection model class
+     * @memberof ko.grid
+     * @class SelectionModel
+     */
+    ko.grid.SelectionModel = function ( options ) {
+
+        if (!this) {
+            return new ko.grid.SelectionModel(options);
+        }
+
+        $.extend(this, {
+            class: "active"
+        ,   modifier: "meta"
+        ,   selected: ko.observable()
+        ,   onchange: null
+        ,   onregister: function ( row ) {
+                var that = this;
+                $(row.node()).click(function ( evt ) {
+                    that.select(row, evt);
+                });
+            }
+        }, options);
+
+        if (!ko.isObservable(this.selected)) {
+            this.selected = ko.observable(this.selected);
+        }
+
+        if ("function" === typeof this.onchange) {
+            this.selected.subscribe(this.onchange);
+        }
+
+        this.select = function ( ) {
+            throw new Error("grid: selection model is abstract");
+        };
+    };
+
+    /**
+     * @class RowSelectionModel
+     * @memberof ko.grid
+     */
+    ko.grid.RowSelectionModel = function ( options ) {
+        var last_elem;
+
+        if (!this) {
+            return new ko.grid.RowSelectionModel(options);
+        }
+
+        ko.grid.SelectionModel.call(this, options);
+
+        this.select = function ( row, evt ) {
+            var $row = $(row.node());
+            if (this.selected() === row && evt[this.modifier + "Key"]) {
+                this.selected(null);
+                $row.removeClass(this.class);
+                last_elem = null;
+            } else {
+                this.selected(row);
+                $row.addClass(this.class);
+                if (last_elem) {
+                    last_elem.removeClass(this.class);
+                }
+                last_elem = $row;
+            }
+        };
+    };
+
+    ko.grid.MultiRowSelectionModel = function ( options ) {
+        if (!this) {
+            return new ko.grid.MultiRowSelectionModel(options);
+        }
+
+        options = $.extend({
+            selected: ko.observableArray([ ])
+        }, options);
+
+        if (!ko.isObservableArray(options.selected)) {
+            options.selected = ko.observableArray(ko.unwrap(options.selected));
+        }
+
+        ko.grid.SelectionModel.call(this, options);
+
+        this.select = function ( row, evt ) {
+            var $row = $(row.node()), sel, sels = this.selected();
+            if (evt[this.modifier + "Key"]) {
+                if (~(sels.indexOf(row))) {
+                    this.selected.remove(row);
+                    $row.removeClass(this.class);
+                } else {
+                    this.selected.push(row);
+                    $row.addClass(this.class);
+                }
+            } else {
+                if (sels.length !== 1 || sels[0] !== row) {
+                    for (sel in sels) {
+                        $(sels[sel].node()).removeClass(this.class);
+                    }
+                    this.selected([row]);
+                    $row.addClass(this.class);
+                } else if (sels[0] === row) {
+                    this.selected([]);
+                    $row.removeClass(this.class);
+                }
+            }
+        };
+    };
 
     // ========== KO BINDING ==========
 

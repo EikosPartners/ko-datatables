@@ -420,6 +420,8 @@
             }
         }, options);
 
+        this.modifier = this.modifier + "Key";
+
         if (!ko.isObservable(this.selected)) {
             this.selected = ko.observable(this.selected);
         }
@@ -448,7 +450,7 @@
 
         this.select = function ( row, evt ) {
             var $row = $(row.node());
-            if (this.selected() === row && evt[this.modifier + "Key"]) {
+            if (this.selected() === row && evt[this.modifier]) {
                 this.selected(null);
                 $row.removeClass(this.class);
                 last_elem = null;
@@ -480,7 +482,7 @@
 
         this.select = function ( row, evt ) {
             var $row = $(row.node()), sel, sels = this.selected();
-            if (evt[this.modifier + "Key"]) {
+            if (evt[this.modifier]) {
                 if (~(sels.indexOf(row))) {
                     this.selected.remove(row);
                     $row.removeClass(this.class);
@@ -495,7 +497,7 @@
                     }
                     this.selected([row]);
                     $row.addClass(this.class);
-                } else if (sels[0] === row) {
+                } else if (sels[0] === row && evt[this.modifier]) {
                     this.selected([]);
                     $row.removeClass(this.class);
                 }

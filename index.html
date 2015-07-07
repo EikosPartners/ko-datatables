@@ -53,7 +53,10 @@
                                 <li><a href="#example-tmpl">Custom Local Templates</a></li>
                                 <li><a href="#example-rowa">Row Access</a></li>
                                 <li><a href="#example-psel">Pseudo Selection</a></li>
-                                <li><a href="#example-perf">Performance</a></li>
+                                <li><a href="#example-rows">Row Selection Model</a></li>
+                                <li><a href="#example-mrws">Multi Row Selection Model</a></li>
+                                <li><a href="#example-cels">Cell Selection Model</a></li>
+                                <li><a href="#example-mcls">Multi Cell Selection Model</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -111,11 +114,11 @@
         <script src="lib/jquery.dataTables.js"></script>
         <script src="lib/knockout.debug.js"></script>
 
-        <!--
-        <script src="https://rawgit.com/eikospartners/ko-datatables/develop/kodt.js"></script>
-        --><!-- local -->
-        <script src="../ko-datatables/kodt.js"></script>
         <!-- -->
+        <script src="https://rawgit.com/eikospartners/ko-datatables/develop/kodt.js"></script>
+        <!-- local
+        <script src="../ko-datatables/kodt.js"></script>
+        -->
         <script>
             // override input templates
             var old_string = ko.grid.templates[ko.grid.TYPE_STRING];
@@ -138,12 +141,7 @@
             <script src="lib/random.js"></script>
             <script id="data">
                 (function ( ) {
-                    var data, generators,
-                    now, now_minus_3m, index, noise, v;
-
-                    now = new Date();
-                    now_minus_3m = new Date();
-                    now_minus_3m.setDate(now_minus_3m.getDate() - 90);
+                    var data, generators, index, noise, v;
 
                     window.data = data = {
                         mock: [ ]
@@ -161,62 +159,12 @@
                             ,   age         : random.integer(12, 88)
                             ,   registered  : random.date()
                             };
-                        },
-                        /*perf: function ( index ) {
-                            var id = random.integer(1, 3)
-                            ,   price = function ( ) {
-                                    return parseFloat(random.number(1000).toFixed(5))
-                                }
-                            ,   doubles = function ( ) {
-                                    var l = random.letter("ABCDEF");
-                                    return l + l;
-                                }
-                            ;
-                            return {
-                              "rejected"        : random.string("[bool]"),
-                              "desc"            : "",
-                              "account"         : "acct_" + id,
-                              "person"          : "person_acct_" + id,
-                              "method"          : "method_acct_" + id,
-                              "order_code"      : "S" + doubles(),
-                              "order_bcode"     : "X" + doubles(),
-                              "order_type"      : "STOP",
-                              "_order_id"        : index,
-                              "quant"           : random.integer(1000),
-                              "quant_filled"    : random.integer(1000),
-                              "quant_last"      : random.integer(1000),
-                              "quant_open"      : random.integer(1000),
-                              "price_limit"     : price(),
-                              "price_last"      : price(),
-                              "price_stop"      : price(),
-                              "price"           : price(),
-                              "venue"           : "V" + doubles(),
-                              "gateway"         : "G" + doubles(),
-                              "price_average"   : price(),
-                              "currency"        : "USD",
-                              "side"            : random.choose(["BUY","SELL"]),
-                              "tif"             : "TIF",
-                              "reject_reason"   : random.choose(["", "REJECTED"]),
-                              "state"           : random.choose(["NEW", "PARTIAL"]),
-                              "event"           : "REPORT",
-                              "time_transaction": random.date().toISOString(),
-                              "time_streamer"   : random.date().toISOString(),
-                              "time_middleware" : random.date().toISOString(),
-                              "manual"          : random.choose(["NO", "YES"]),
-                              "id_original"     : random.integer(10000),
-                              "time_placement"  : random.date().toISOString()
-                            }
-                        }*/
+                        }
                     };
 
                     for (index = 0; index < 100; index++) {
                         data.mock.push(generators.mock(index));
                     }
-                    /*
-                    for (index = 0; index < 50; index++) {
-                        data.perf.push(generators.perf(index));
-                    }
-                    */
 
                     noise = function ( data, gen, freq ) {
                         var index, row, key, d;
@@ -251,15 +199,10 @@
                         }
                     };
                     window.mock_noise = window.noise.bind(null, "mock");
-                    //window.perf_noise = window.noise.bind(null, "perf");
 
                 })();
-
-
             </script>
-
         </div>
-
         <div class="content container">
             <div id="example-zero" data="mock">
                 <h5 id="example-zero-title">Zero Configuration</h5>
@@ -457,19 +400,11 @@
                         });
 
                         element = document.getElementById("example-psel-selected-code");
-                        element.parent = element.parentNode;
-                        element.parent.style.borderRadius = 0;
 
                         ko.computed(function ( ) {
-                            var code = JSON.stringify(ko.toJS(selected).map(function ( item ) {
-                                return item._index;
-                            }), null);
-                            element.innerHTML = code.split("\n").map(function ( line ) {
-                                return "    " + line.split(",").join(", ");
-                            }).join("\n");
-                            element.parent.innerHTML = "";
-                            element.parent.appendChild(element);
-                            hljs.highlightBlock(element.parent);
+                            element.innerHTML = selected().map(function ( item ) {
+                                return item._index();
+                            }).toString().replace(/,/g, ", ");
                         });
                     });
                 </script>
@@ -478,40 +413,81 @@
                 </span>
                 <table id="example-psel-content"></table>
             </div>
-            <!--<div id="example-perf" data="perf">
-                <h5 id="example-perf-title">Performance</h5>
-                <script id="example-perf-script">
+            <div id="example-rows">
+                <h5 id="example-rows-title">Row Selection Model</h5>
+                <script id="example-rows-script">
                     window.setTimeout(function ( ) {
-                        var element, dm, index;
+                        var element, selement;
 
-                        element = document.getElementById("example-perf-content");
+                        element = document.getElementById("example-rows-content");
                         element.setAttribute("data-bind", "grid:$data");
 
-                        dm = new ko.grid.DataModel({
-                            rows: window.data.perf
-                        });
+                        selement = document.getElementById("example-rows-selected-code");
 
                         ko.applyBindingsToNode(element, null, {
-                            options: {
-                                paging  : false
-                            ,   dom     : "t"
-                            ,   scrollY : 300
-                            ,   scrollX : true
-                        }
-                        ,   readonly: true
-                        ,   dataModel: dm
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   selectionModels: [
+                                new ko.grid.RowSelectionModel({
+                                    onchange: function ( row ) {
+                                        selement.innerHTML = (row) ? row.data()._index() : "None";
+                                    }
+                                })
+                            ]
+                        ,   columnModels: [
+                                { name: "_index",   title: "",               type: "text",     object: true }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                            ]
                         });
-
-                        /*index = 50;
-                        setInterval(function (  ) {
-                            var rows = dm.rows();
-                            dm.rows.remove(rows[random.integer(rows.length)]);
-                            dm.rows.push(generators.perf(index++));
-                        }, 5000);*/
                     });
                 </script>
-                <table id="example-perf-content"></table>
-            </div>-->
+                <span id="example-rows-selected">
+                    <pre><code class="json" id="example-rows-selected-code">None</code></pre>
+                </span>
+                <table id="example-rows-content"></table>
+            </div>
+            <div id="example-mrws">
+                <h5 id="example-mrws-title">Multi Row Selection Model</h5>
+                <script id="example-mrws-script">
+                    window.setTimeout(function ( ) {
+                        var element, selement;
+
+                        element = document.getElementById("example-mrws-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        selement = document.getElementById("example-mrws-selected-code");
+
+                        ko.applyBindingsToNode(element, null, {
+                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                        ,   selectionModels: [
+                                new ko.grid.MultiRowSelectionModel({
+                                    onchange: function ( rows ) {
+                                        selement.innerHTML = (rows.length)
+                                            ? rows.map(function ( row ) {
+                                                return row.data()._index();
+                                            }).toString() : "None";
+                                    }
+                                })
+                            ]
+                        ,   columnModels: [
+                                { name: "_index",   title: "",               type: "text",     object: true }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
+                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
+                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                            ]
+                        });
+                    });
+                </script>
+                <span id="example-mrws-selected">
+                    <pre><code class="json" id="example-mrws-selected-code">None</code></pre>
+                </span>
+                <table id="example-mrws-content"></table>
+            </div>
         </div>
 
         <script src="lib/highlight.pack.js"></script>
@@ -564,7 +540,7 @@
                         .html()
                         .split("\n")
                         .map(function ( string, index ) {
-                            return string.substr(16)
+                            return string.substr(20)
                                 .replace(/\>/g, "&gt;")
                                 .replace(/\</g, "&lt;");
                         })

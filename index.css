@@ -78,6 +78,7 @@ pre {
     color: white;
     box-sizing: border-box;
     transition: padding 400ms;
+    padding: 1em 3em !important;
     border: 0;
 }
 #data + pre {
@@ -85,7 +86,8 @@ pre {
 }
 .collapse {
     height: 0 !important;
-    padding: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 .collapse.in {
     height: auto !important;
@@ -140,6 +142,8 @@ tr
 {
     transition: 300ms;
 }
+
+.active,
 .highlight
 {
     background: rgba(26, 188, 156, 0.2);

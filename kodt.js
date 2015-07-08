@@ -365,7 +365,7 @@
         }
 
         if ("string" === typeof options) {
-            this.name = this.title = options;
+            this.name = options;
         } else if (options instanceof Object) {
             $.extend(this, options);
         }

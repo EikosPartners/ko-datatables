@@ -156,6 +156,18 @@
     ,   TYPE_CHECKBOX: "checkbox"
     };
 
+    // ========== HELPERS ==========
+
+    ko.grid._unwrap_template = function ( ) {
+        if (this.template instanceof Function) {
+            this.template = this.template();
+        }
+        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
+            this.template =
+                "<!-- ko template:'" + this.template + "' --><!-- /ko -->";
+        }
+    };
+
     // ========== TEMPLATES ==========
 
     /**
@@ -220,10 +232,12 @@
      * @memberof ko.grid
      * @param {Object} options overridable settings
      * @param {Array<Object|Array>} [options.rows=[ ]] initial dataset
-     * @param {Number} [options.page=1] current page location
-     * @param {Number} [options.pageSize=20] count of items per page
-     * @param {String} [options.sortField=null] field to sort by
-     * @param {String} [options.sortOrder={@link ko.grid.SORT_ASC}]
+     * @param {Number}  [options.page=1] current page location
+     * @param {Number}  [options.pageSize=20] count of items per page
+     * @param {Boolean} [options.usejson=true] treat rows as json objects
+     *  alternative will expect arrays
+     * @param {String}  [options.sortField=null] field to sort by
+     * @param {String}  [options.sortOrder={@link ko.grid.SORT_ASC}]
      *  order to sort by
      * @param {Function} [options.onrequest=null] data request callback
      * @param {Function} [options.onaddrow=null] row normalization callback
@@ -243,6 +257,7 @@
             rows: [  ]
         ,   page: 1
         ,   pageSize: 20
+        ,   usejson: true
         ,   sortField: null
         ,   sortOrder: ko.grid.SORT_ASC
         ,   onrequest: null
@@ -342,7 +357,6 @@
      *  (useful for comboboxes, etc)
      * @param {String} [options.template] cell rendering template
      * @param {Boolean} [options.control] is control column
-     * @param {Object} [options.object] is object column model
      */
     ko.grid.ColumnModel = function ( options ) {
 
@@ -351,7 +365,7 @@
         }
 
         if ("string" === typeof options) {
-            this.title = options;
+            this.name = this.title = options;
         } else if (options instanceof Object) {
             $.extend(this, options);
         }
@@ -378,21 +392,13 @@
             this.type = ko.grid.TYPE_CONTROL;
         }
 
-        if (this.object && this.data === void 0) {
-            this.data = this.name;
-        }
-
         if (this.template === void 0) {
             this.template = ko.grid.templates[this.type] ||
                 "<!-- ko template:'" + this.type + "' --><!-- /ko -->";
         }
 
-        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
-            this.template =
-                "<!-- ko template:'" + this.template + "' --><!-- /ko -->";
-        }
+        ko.grid._unwrap_template.call(this);
     };
-
 
     // ========== SELECTION MODELS ==========
 
@@ -412,6 +418,7 @@
         ,   modifier: "meta"
         ,   selected: ko.observable()
         ,   onchange: null
+        ,   onbefore: null
         ,   onregister: function ( row ) {
                 var that = this;
                 $(row.node()).click(function ( evt ) {
@@ -428,6 +435,10 @@
 
         if ("function" === typeof this.onchange) {
             this.selected.subscribe(this.onchange);
+        }
+
+        if ("function" === typeof this.onbefore) {
+            this.selected.subscribe(this.onbefore, null, "beforeChange");
         }
 
         this.select = function ( ) {
@@ -505,6 +516,52 @@
         };
     };
 
+    // ========== CHILD MODEL ==========
+
+    /**
+     * model for child rows
+     * @static
+     * @memberof ko.grid
+     * @class ChildModel
+     * @param {Object|String} options fine tune controls or template
+     * @param {String} options.template how to render this child
+     * @param {String} [options.data] overrides row data for context
+     * @param {Function} [options.onbefore] called before child is shown
+     * @param {Function} [options.onafter] called after child is shown
+     * @param {Object} [options.animate] options for animation, don't if falsey
+     */
+    ko.grid.ChildModel = function ( options ) {
+
+        if (!(this instanceof ko.grid.ChildModel)) {
+            return new ko.grid.ChildModel(options);
+        }
+
+        if ("string" === typeof options) {
+            options = { template: options };
+        }
+
+        $.extend(this, {
+            onbefore: null
+        ,   onafter: null
+        ,   animate: null
+        }, options);
+
+        if (!this.template) {
+            throw new Error("grid: child model requires template");
+        }
+
+        if (this.animate && this.animate.constructor !== Object) {
+            this.animate = { };
+        }
+
+        ko.grid._unwrap_template.call(this);
+
+        this.template =
+            "<div class='grid_child_wrapper'" +
+            (this.animate ? " style='display:none'>" : ">") +
+            this.template + "</div>";
+    };
+
     // ========== KO BINDING ==========
 
     /**
@@ -547,7 +604,11 @@
         settings.columnModels = [ ];
 
         if (!(data = settings.dataModel.rows()[0])) {
-            throw new Error("grid: cannot generate rows with no data");
+            throw new Error("grid: cannot generate columns with no data");
+        }
+
+        if (!(data instanceof Array)) {
+            settings.usejson = true;
         }
 
         for (index in data) {
@@ -556,7 +617,6 @@
             ,   type: (settings.readonly || index.indexOf("_") === 0)
                 ? "text"
                 : ko.grid.detect_type(ko.unwrap(data[index]))
-            ,   object: !(data instanceof Array)
             }));
         }
     };
@@ -574,7 +634,8 @@
         var row_template = $("<tr>")
         ,   template
         ,   index
-        ,   model, $model;
+        ,   model
+        ;
 
         if (!settings.columnModels) {
             ko.grid.create_column_template(settings);
@@ -586,9 +647,13 @@
                 settings.columnModels[index] = model =
                     new ko.grid.ColumnModel(model);
             }
+            // correct data members
+            if (settings.dataModel.usejson && model.data === void 0) {
+                model.data = model.name;
+            }
             // add convenience members
             model.index = index;
-            model.value = (model.object) ? model.name : "$data[" + index + "]";
+            model.value = (model.data) ? model.name : "$data[" + index + "]";
             // auto detect settings
             if (model.searchable) {
                 settings._searchable = true;
@@ -598,18 +663,15 @@
                 model.type + " name_" +
                 model.name + " " +
                 (model.className || "") + "\">");
-            $model = $((model.template instanceof Function)
-                ? model.template() : model.template);
 
             // add model to template
             template.append(
                 $("<!-- ko with: {value: " + model.value + ", row: $row} -->"));
-            template.append($model);
+            template.append(model.template);
             template.append(
                 $("<!-- /ko -->"));
             // add template to row
             row_template.append(template);
-
         }
 
         // unwrap from jquery
@@ -623,6 +685,87 @@
         return row_template;
     };
 
+    // TODO: document
+    ko.grid.register_children = function ( row, models ) {
+        var children = [ ]
+        ,   templates = models.map(function ( model ) {
+                return model.template;
+            });
+
+        row.children = { };
+
+        row.children.shown = row.child.isShown;
+        row.children.hidden = function ( ) {
+            return !row.children.shown();
+        };
+
+        row.children.show = function ( ) {
+            if (row.children.hidden()) {
+                row.child(templates).show();
+                children = [ ];
+                row.child().each(function ( index ) {
+                    var child, data, model = models[index];
+
+                    children.push(child = this.children[0].children[0]);
+
+                    if (model.onbefore instanceof Function) {
+                        data = model.onbefore(child, row);
+                    }
+
+                    ko.applyBindings(model.data || data || {
+                        row: row
+                    ,   data: row.data()
+                    }, child);
+
+                    if (model.animate) {
+                        $(child).slideDown(model.animate);
+                    }
+
+                    if (model.onafter instanceof Function) {
+                        model.onafter(child, row);
+                    }
+                });
+            }
+        };
+
+        row.children.hide = function ( ) {
+            var count = 0
+            ,   done = function (  ) {
+                    if (count++ === children.length) {
+                        row.child.hide();
+                    }
+                };
+            if (row.children.shown()) {
+                children.forEach(function ( child, index ) {
+                    var model = models[index];
+
+                    if (model.onbefore instanceof Function) {
+                        model.onbefore(child, row);
+                    }
+                    if (model.animate) {
+                        model.animate._complete = model.complete;
+                        model.animate.complete = function (  ) {
+                            if (model.animate._complete instanceof Function) {
+                                model.animate._complete.apply(this, arguments);
+                            }
+                            if (model.onafter instanceof Function) {
+                                model.onafter(child, row);
+                            }
+                            done();
+                        };
+                        $(child).slideUp(model.animate);
+                    } else {
+                        if (model.onafter instanceof Function) {
+                            model.onafter(child, row);
+                        }
+                        done();
+                    }
+                });
+                done();
+            }
+        };
+    };
+
     /**
      * @namespace ko.bindingHandlers
      * @memberof ko
@@ -633,6 +776,7 @@
      * @memberof ko.bindingHandlers
      */
     ko.bindingHandlers.grid = {
+        // TODO: document valueAccessor properties
         /**
          * called to initialize grid binding within knockout
          * @memberof ko.bindingHandlers.grid
@@ -666,6 +810,16 @@
 
             settings._row_template = ko.grid.create_row_template(settings);
 
+
+            if (settings.childrenModels) {
+                settings.childrenModels =
+                settings.childrenModels.map(function ( template ) {
+                    if (!(template instanceof ko.grid.ChildModel)) {
+                        template = new ko.grid.ChildModel(template);
+                    }
+                    return template;
+                });
+            }
             // options construction
             options.columns = settings.columnModels;
             options.data = ko.unwrap(settings.dataModel.rows);
@@ -696,6 +850,10 @@
 
                 ko.renderTemplate(settings._row_template,
                     ctx, { }, row, "replaceChildren");
+
+                if (settings.childrenModels) {
+                    ko.grid.register_children(_row, settings.childrenModels);
+                }
 
                 if (settings._createdRow instanceof Function) {
                     settings._createdRow.call(this, row, src, index);

@@ -57,6 +57,7 @@
                                 <li><a href="#example-mrws">Multi Row Selection Model</a></li>
                                 <li><a href="#example-cels">Cell Selection Model</a></li>
                                 <li><a href="#example-mcls">Multi Cell Selection Model</a></li>
+                                <li><a href="#example-chld">Child Rows</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -112,6 +113,7 @@
 
         <!-- datatables dependencies -->
         <script src="lib/jquery.dataTables.js"></script>
+        <script src="https://cdn.datatables.net/colreorder/1.1.3/js/dataTables.colReorder.js"></script>
         <script src="lib/knockout.debug.js"></script>
 
         <!-- -->
@@ -230,12 +232,14 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   columnModels: [
-                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true }
-                            ,   { name: "age",      title: "Age",            type: "text",     object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true }
+                                { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text"     }
+                            ,   { name: "age",      title: "Age",            type: "text"     }
+                            ,   { name: "balance",  title: "Balance",        type: "text"     }
                             ]
                         });
                     });
@@ -270,12 +274,14 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   columnModels: [
-                                { name: "isActive", title: "Active",         type: "toggle",   object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true }
-                            ,   { name: "age",      title: "Completion",     type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true }
+                                { name: "isActive", title: "Active",         type: "toggle"   }
+                            ,   { name: "guid",     title: "Identification", type: "text"     }
+                            ,   { name: "age",      title: "Completion",     type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text"     }
                             ]
                         });
 
@@ -319,12 +325,14 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   columnModels: [
-                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
-                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text",
                                     template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
                             ]
                         });
@@ -342,7 +350,9 @@
                         element.setAttribute("data-bind", "grid:$data");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   oncreaterow: function ( row ) {
                                 var active, node = $(row.node());
                                 (active = row.data().isActive).subscribe(function ( change ) {
@@ -351,10 +361,10 @@
                                 // force update
                                 active.notifySubscribers(active());
                         },  columnModels: [
-                                { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
-                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text",
                                     template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
                             ]
                         });
@@ -374,7 +384,9 @@
                         selected = ko.observableArray([ ]);
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   oncreaterow: function ( row ) {
                                 var active, node = $(row.node()), data;
 
@@ -390,12 +402,12 @@
                                 // force update
                                 active.notifySubscribers(active());
                         },  columnModels: [
-                                { name: "_index",   title: "",               type: "text",     object: true }
-                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
-                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
-                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                                { name: "_index",   title: "",               type: "text"     }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text",
+                                    template: "<span data-bind=\"text:format_dollar(value())\"><\/span>" }
                             ]
                         });
 
@@ -425,7 +437,9 @@
                         selement = document.getElementById("example-rows-selected-code");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   selectionModels: [
                                 new ko.grid.RowSelectionModel({
                                     onchange: function ( row ) {
@@ -434,11 +448,11 @@
                                 })
                             ]
                         ,   columnModels: [
-                                { name: "_index",   title: "",               type: "text",     object: true }
-                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
-                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
+                                { name: "_index",   title: "",               type: "text"     }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text",
                                     template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
                             ]
                         });
@@ -461,7 +475,9 @@
                         selement = document.getElementById("example-mrws-selected-code");
 
                         ko.applyBindingsToNode(element, null, {
-                            dataModel: { rows: window.data.mock.slice(0, 5) }
+                            dataModel: {
+                                rows: window.data.mock.slice(0, 5)
+                            }
                         ,   selectionModels: [
                                 new ko.grid.MultiRowSelectionModel({
                                     onchange: function ( rows ) {
@@ -473,12 +489,12 @@
                                 })
                             ]
                         ,   columnModels: [
-                                { name: "_index",   title: "",               type: "text",     object: true }
-                            ,   { name: "isActive", title: "Active",         type: "checkbox", object: true }
-                            ,   { name: "guid",     title: "Identification", type: "text",     object: true, template: "tmpl_temp" }
-                            ,   { name: "age",      title: "Age",            type: "progress", object: true }
-                            ,   { name: "balance",  title: "Balance",        type: "text",     object: true,
-                                    template: "<span data-bind=\"text:format_dollar(value())\"></span>" }
+                                { name: "_index",   title: "",               type: "text"     }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ,   { name: "age",      title: "Age",            type: "progress" }
+                            ,   { name: "balance",  title: "Balance",        type: "text",
+                                    template: "<span data-bind=\"text:format_dollar(value())\"><\/span>" }
                             ]
                         });
                     });
@@ -487,6 +503,50 @@
                     <pre><code class="json" id="example-mrws-selected-code">None</code></pre>
                 </span>
                 <table id="example-mrws-content"></table>
+            </div>
+            <div id="example-chld" data="mock" class="no-info">
+                <h5 id="example-chld-title">Child Rows</h5>
+                <script id="example-chld-script">
+                    window.setTimeout(function ( ) {
+                        var element;
+
+                        element = document.getElementById("example-chld-content");
+                        element.setAttribute("data-bind", "grid:$data");
+
+                        last_child = null
+
+                        ko.applyBindingsToNode(element, null, {
+                            options: { dom: 'Rt' }
+                        ,   dataModel: { rows: window.data.mock.slice(0, 10) }
+                        ,   childrenModels: [
+                            {
+                                template: "Balance: <span data-bind='text:format_dollar(data.balance())'><\/span>"
+                            ,   animate: true
+                            }
+                        ]
+                        ,   selectionModels: [
+                                new ko.grid.RowSelectionModel({
+                                    onchange: function ( row ) {
+                                        if (row) {
+                                            row.children.show();
+                                        }
+                                    }
+                                ,   onbefore: function ( row ) {
+                                        if (row) {
+                                            row.children.hide();
+                                        }
+                                    }
+                                })
+                            ]
+                        ,   columnModels: [
+                                { name: "_index",   title: "",               type: "text"     }
+                            ,   { name: "isActive", title: "Active",         type: "checkbox" }
+                            ,   { name: "guid",     title: "Identification", type: "text",     template: "tmpl_temp" }
+                            ]
+                        });
+                    });
+                </script>
+                <table id="example-chld-content"></table>
             </div>
         </div>
 

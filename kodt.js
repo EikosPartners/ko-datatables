@@ -23,10 +23,13 @@
 
     /** @namespace ko */
 
+    // ========== HELPERS ==========
+
     var pid_generator
     ,   pid_for_column
     ,   make_element
     ,   make_binding
+    ,   unwrap_template
     ;
 
     /**
@@ -94,6 +97,21 @@
      */
     pid_for_column = pid_generator("column_");
 
+    /**
+     * unwraps template and changes to tags if identifier
+     * @private
+     * @this {Object} something with a template property
+     */
+    unwrap_template = function ( ) {
+        if (this.template instanceof Function) {
+            this.template = this.template();
+        }
+        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
+            this.template =
+                "<!-- ko template:'" + this.template + "' --><!-- /ko -->";
+        }
+    };
+
     // polyfill
     if (!ko.isObservableArray) {
         ko.isObservableArray = function ( o ) {
@@ -154,18 +172,6 @@
          * @default checkbox
          */
     ,   TYPE_CHECKBOX: "checkbox"
-    };
-
-    // ========== HELPERS ==========
-
-    ko.grid._unwrap_template = function ( ) {
-        if (this.template instanceof Function) {
-            this.template = this.template();
-        }
-        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
-            this.template =
-                "<!-- ko template:'" + this.template + "' --><!-- /ko -->";
-        }
     };
 
     // ========== TEMPLATES ==========
@@ -397,7 +403,7 @@
                 "<!-- ko template:'" + this.type + "' --><!-- /ko -->";
         }
 
-        ko.grid._unwrap_template.call(this);
+        unwrap_template.call(this);
     };
 
     // ========== SELECTION MODELS ==========
@@ -406,6 +412,19 @@
      * base selection model class
      * @memberof ko.grid
      * @class SelectionModel
+     * @param {Object} [options] fine tune controls
+     * @param {String} [options.class="active"] classname to apply on select
+     * @param {String} [options.modifier="meta"] key to activate modified state
+     * @param {Object|Function} [options.selected=ko.observable] selected item
+     * @param {Function} [options.onchange=null] called when selection changes
+     * @param {Function} [options.onbefore=null] called before selection change
+     * @param {Function} [options.onregister] called to register a row
+     * @example
+     *  new ko.grid.SelectionModel({
+     *    onregister: function ( row ) {
+     *      $(row.node()).click(this.select.bind(this, row));
+     *    }
+     *  });
      */
     ko.grid.SelectionModel = function ( options ) {
 
@@ -420,10 +439,7 @@
         ,   onchange: null
         ,   onbefore: null
         ,   onregister: function ( row ) {
-                var that = this;
-                $(row.node()).click(function ( evt ) {
-                    that.select(row, evt);
-                });
+                $(row.node()).click(this.select.bind(this, row));
             }
         }, options);
 
@@ -554,7 +570,7 @@
             this.animate = { };
         }
 
-        ko.grid._unwrap_template.call(this);
+        unwrap_template.call(this);
 
         this.template =
             "<div class='grid_child_wrapper'" +

@@ -64,7 +64,7 @@
         if (content === false) {
             elem += "/>";
         } else {
-            elem += ">" + content + "</" + name + ">";
+            elem += ">" + (content || "") + "</" + name + ">";
         }
         return elem;
     };

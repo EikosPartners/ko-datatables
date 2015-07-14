@@ -878,6 +878,10 @@
                 ko.renderTemplate(settings._row_template,
                     ctx, { }, row, "replaceChildren");
 
+                // reset internal representation of cells
+                this.fnSettings().aoData.anCells =
+                    Array.prototype.slice.call(row.children);
+
                 if (settings.childrenModels) {
                     ko.grid.register_children(_row, settings.childrenModels);
                 }

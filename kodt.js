@@ -866,10 +866,11 @@
 
             settings._createdRow = options.createdRow;
             options.createdRow = function ( row, src, index ) {
-                var $row, _row, ctx;
+                var $row, _row, ctx, _cells;
 
                 $row = $(row);
                 _row = this.api().row($row);
+                _cells = this.fnSettings().aoData[index].anCells;
                 ctx = settings.dataModel.mapper(_row);
 
                 ctx = bindingContext.createChildContext(ctx, settings.as);
@@ -879,8 +880,8 @@
                     ctx, { }, row, "replaceChildren");
 
                 // reset internal representation of cells
-                this.fnSettings().aoData.anCells =
-                    Array.prototype.slice.call(row.children);
+                _cells.length = 0;
+                Array.prototype.push.apply(_cells, row.children);
 
                 if (settings.childrenModels) {
                     ko.grid.register_children(_row, settings.childrenModels);

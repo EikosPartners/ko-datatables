@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: DataModel</title>
+    <title>JSDoc: Class: SelectionModel</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: DataModel</h1>
+    <h1 class="page-title">Class: SelectionModel</h1>
 
     
 
@@ -31,7 +31,7 @@
         <h2>
             <span class="ancestors"><a href="ko.html">ko</a><a href="ko.grid.html">.grid</a>.</span>
         
-        DataModel
+        SelectionModel
         </h2>
         
     
@@ -44,14 +44,14 @@
 
     
 
-    <h4 class="name" id="DataModel"><span class="type-signature"></span>new DataModel<span class="signature">(options)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="SelectionModel"><span class="type-signature"></span>new SelectionModel<span class="signature">(options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    model for grid data
+    base selection model class
 </div>
 
 
@@ -74,6 +74,8 @@
 
         <th>Type</th>
 
+        
+        <th>Attributes</th>
         
 
         
@@ -100,10 +102,20 @@
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last">overridable settings
+            <td class="description last">fine tune controls
                 <h6>Properties</h6>
                 
 
@@ -133,164 +145,7 @@
 
         <tr>
             
-                <td class="name"><code>rows</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;(Object|Array)></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    [ ]
-                
-                </td>
-            
-
-            <td class="description last">initial dataset</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>page</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1
-                
-                </td>
-            
-
-            <td class="description last">current page location</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>pageSize</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    20
-                
-                </td>
-            
-
-            <td class="description last">count of items per page</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>usejson</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    true
-                
-                </td>
-            
-
-            <td class="description last">treat rows as json objects
- alternative will expect arrays</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>sortField</code></td>
+                <td class="name"><code>class</code></td>
             
 
             <td class="type">
@@ -317,19 +172,19 @@
             
                 <td class="default">
                 
-                    null
+                    "active"
                 
                 </td>
             
 
-            <td class="description last">field to sort by</td>
+            <td class="description last">classname to apply on select</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>sortOrder</code></td>
+                <td class="name"><code>modifier</code></td>
             
 
             <td class="type">
@@ -356,24 +211,27 @@
             
                 <td class="default">
                 
-                    <a href="ko.grid.html#.SORT_ASC">ko.grid.SORT_ASC</a>
+                    "meta"
                 
                 </td>
             
 
-            <td class="description last">order to sort by</td>
+            <td class="description last">key to activate modified state</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>onrequest</code></td>
+                <td class="name"><code>selected</code></td>
             
 
             <td class="type">
             
                 
+<span class="param-type">Object</span>
+|
+
 <span class="param-type">function</span>
 
 
@@ -395,90 +253,12 @@
             
                 <td class="default">
                 
-                    null
+                    ko.observable
                 
                 </td>
             
 
-            <td class="description last">data request callback</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>onaddrow</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last">row normalization callback</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>onaddcell</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last">cell normalization callback</td>
+            <td class="description last">selected item</td>
         </tr>
 
     
@@ -517,7 +297,7 @@
                 </td>
             
 
-            <td class="description last">data change callback</td>
+            <td class="description last">called when selection changes</td>
         </tr>
 
     
@@ -556,7 +336,44 @@
                 </td>
             
 
-            <td class="description last">data before change callback</td>
+            <td class="description last">called before selection change</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>onregister</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">called to register a row</td>
         </tr>
 
     
@@ -604,7 +421,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="kodt.js.html">kodt.js</a>, <a href="kodt.js.html#line235">line 235</a>
+        <a href="kodt.js.html">kodt.js</a>, <a href="kodt.js.html#line422">line 422</a>
     </li></ul></dd>
     
 
@@ -627,6 +444,15 @@
 
 
 
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>new ko.grid.SelectionModel({
+   onregister: function ( row ) {
+     $(row.node()).click(this.select.bind(this, row));
+   }
+ });</code></pre>
 
 
 

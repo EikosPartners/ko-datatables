@@ -51,10 +51,13 @@
 
     /** @namespace ko */
 
+    // ========== HELPERS ==========
+
     var pid_generator
     ,   pid_for_column
     ,   make_element
     ,   make_binding
+    ,   unwrap_template
     ;
 
     /**
@@ -89,7 +92,7 @@
         if (content === false) {
             elem += "/>";
         } else {
-            elem += ">" + content + "&lt;/" + name + ">";
+            elem += ">" + (content || "") + "&lt;/" + name + ">";
         }
         return elem;
     };
@@ -122,6 +125,21 @@
      */
     pid_for_column = pid_generator("column_");
 
+    /**
+     * unwraps template and changes to tags if identifier
+     * @private
+     * @this {Object} something with a template property
+     */
+    unwrap_template = function ( ) {
+        if (this.template instanceof Function) {
+            this.template = this.template();
+        }
+        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
+            this.template =
+                "&lt;!-- ko template:'" + this.template + "' -->&lt;!-- /ko -->";
+        }
+    };
+
     // polyfill
     if (!ko.isObservableArray) {
         ko.isObservableArray = function ( o ) {
@@ -135,7 +153,7 @@
      */
     ko.grid = {
         /**
-         * Ascending order for sorting
+         * ascending order for sorting
          * @static
          * @memberof ko.grid
          * @member SORT_ASC
@@ -143,16 +161,101 @@
          */
         SORT_ASC: "ASC"
         /**
-         * Descending order for sorting
+         * descending order for sorting
          * @static
          * @memberof ko.grid
          * @member SORT_DSC
          * @default DEC
          */
     ,   SORT_DSC: "DEC"
+        /**
+         * control column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_CONTROL
+         * @default control
+         */
     ,   TYPE_CONTROL: "control"
+        /**
+         * text column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_TEXT
+         * @default text
+         */
     ,   TYPE_TEXT: "text"
+        /**
+         * string column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_STRING
+         * @default string
+         */
     ,   TYPE_STRING: "string"
+        /**
+         * checkbox column type
+         * @static
+         * @memberof ko.grid
+         * @member TYPE_CHECKBOX
+         * @default checkbox
+         */
+    ,   TYPE_CHECKBOX: "checkbox"
+    };
+
+    // ========== TEMPLATES ==========
+
+    /**
+     * @namespace ko.grid.templates
+     * @memberof ko.grid
+     */
+    ko.grid.templates = {  };
+
+    /**
+     * control template generator
+     * @static
+     * @memberof ko.grid.templates
+     * @function control
+     * @return {String} control template
+     */
+    ko.grid.templates[ko.grid.TYPE_CONTROL] = function ( ) {
+        return "";
+    };
+
+    /**
+     * text template generator - no input, display value only
+     * @static
+     * @memberof ko.grid.templates
+     * @function text
+     * @return {String} text template
+     */
+    ko.grid.templates[ko.grid.TYPE_TEXT] = function ( ) {
+        return make_element("span", make_binding({text: "value"}));
+    };
+
+    /**
+     * string template generator - input as string type
+     * @static
+     * @memberof ko.grid.templates
+     * @function string
+     * @return {String} string template
+     */
+    ko.grid.templates[ko.grid.TYPE_STRING] = function ( ) {
+        var attrs = make_binding({value: "value"});
+        attrs.type = "text";
+        return make_element("input", attrs, false);
+    };
+
+    /**
+     * checkbox template generator - input as checkbox type
+     * @static
+     * @memberof ko.grid.templates
+     * @function checkbox
+     * @return {String} string template
+     */
+    ko.grid.templates[ko.grid.TYPE_CHECKBOX] = function ( ) {
+        var attrs = make_binding({value: "value", checked: "value"});
+        attrs.type = "checkbox";
+        return make_element("input", attrs, false);
     };
 
     // ========== DATA MODELS ==========
@@ -163,15 +266,18 @@
      * @memberof ko.grid
      * @param {Object} options overridable settings
      * @param {Array&lt;Object|Array>} [options.rows=[ ]] initial dataset
-     * @param {Number} [options.page=1] current page location
-     * @param {Number} [options.pageSize=20] count of items per page
-     * @param {String} [options.sortField=null] field to sort by
-     * @param {String} [options.sortOrder={@link ko.grid.SORT_ASC}]
+     * @param {Number}  [options.page=1] current page location
+     * @param {Number}  [options.pageSize=20] count of items per page
+     * @param {Boolean} [options.usejson=true] treat rows as json objects
+     *  alternative will expect arrays
+     * @param {String}  [options.sortField=null] field to sort by
+     * @param {String}  [options.sortOrder={@link ko.grid.SORT_ASC}]
      *  order to sort by
      * @param {Function} [options.onrequest=null] data request callback
      * @param {Function} [options.onaddrow=null] row normalization callback
      * @param {Function} [options.onaddcell=null] cell normalization callback
      * @param {Function} [options.onchange=null] data change callback
+     * @param {Function} [options.onbefore=null] data before change callback
      */
     ko.grid.DataModel = function ( options ) {
         var that;
@@ -186,6 +292,7 @@
             rows: [  ]
         ,   page: 1
         ,   pageSize: 20
+        ,   usejson: true
         ,   sortField: null
         ,   sortOrder: ko.grid.SORT_ASC
         ,   onrequest: null
@@ -218,6 +325,16 @@
                             column: column
                         });
                     });
+                }
+
+                if ("function" === typeof that.onbefore) {
+                    val.subscribe(function ( ) {
+                        that.onbefore({
+                            row: row,
+                            cell: cell,
+                            column: column
+                        });
+                    }, null, "beforeChange");
                 }
 
                 if ("function" === typeof that.onaddcell) {
@@ -285,7 +402,6 @@
      *  (useful for comboboxes, etc)
      * @param {String} [options.template] cell rendering template
      * @param {Boolean} [options.control] is control column
-     * @param {Object} [options.object] is object column model
      */
     ko.grid.ColumnModel = function ( options ) {
 
@@ -294,7 +410,7 @@
         }
 
         if ("string" === typeof options) {
-            this.title = options;
+            this.name = options;
         } else if (options instanceof Object) {
             $.extend(this, options);
         }
@@ -308,7 +424,9 @@
         }
 
         if (this.title === void 0) {
-            this.title = this.name;
+            this.title = this.name
+                .replace(/_/g, " ")
+                .replace(/([a-z])([A-Z])/g, "$1 $2");
         }
 
         if (this.control) {
@@ -319,24 +437,185 @@
             this.type = ko.grid.TYPE_CONTROL;
         }
 
-        if (this.object &amp;&amp; this.data === void 0) {
-            this.data = this.name;
-        }
-
         if (this.template === void 0) {
             this.template = ko.grid.templates[this.type] ||
                 "&lt;!-- ko template:'" + this.type + "' -->&lt;!-- /ko -->";
         }
 
-        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this.template)) {
-            this.template =
-                "&lt;!-- ko template:'" + this.template + "' -->&lt;!-- /ko -->";
-        }
+        unwrap_template.call(this);
     };
-
 
     // ========== SELECTION MODELS ==========
 
+    /**
+     * base selection model class
+     * @memberof ko.grid
+     * @class SelectionModel
+     * @param {Object} [options] fine tune controls
+     * @param {String} [options.class="active"] classname to apply on select
+     * @param {String} [options.modifier="meta"] key to activate modified state
+     * @param {Object|Function} [options.selected=ko.observable] selected item
+     * @param {Function} [options.onchange=null] called when selection changes
+     * @param {Function} [options.onbefore=null] called before selection change
+     * @param {Function} [options.onregister] called to register a row
+     * @example
+     *  new ko.grid.SelectionModel({
+     *    onregister: function ( row ) {
+     *      $(row.node()).click(this.select.bind(this, row));
+     *    }
+     *  });
+     */
+    ko.grid.SelectionModel = function ( options ) {
+
+        if (!this) {
+            return new ko.grid.SelectionModel(options);
+        }
+
+        $.extend(this, {
+            class: "active"
+        ,   modifier: "meta"
+        ,   selected: ko.observable()
+        ,   onchange: null
+        ,   onbefore: null
+        ,   onregister: function ( row ) {
+                $(row.node()).click(this.select.bind(this, row));
+            }
+        }, options);
+
+        this.modifier = this.modifier + "Key";
+
+        if (!ko.isObservable(this.selected)) {
+            this.selected = ko.observable(this.selected);
+        }
+
+        if ("function" === typeof this.onchange) {
+            this.selected.subscribe(this.onchange);
+        }
+
+        if ("function" === typeof this.onbefore) {
+            this.selected.subscribe(this.onbefore, null, "beforeChange");
+        }
+
+        this.select = function ( ) {
+            throw new Error("grid: selection model is abstract");
+        };
+    };
+
+    /**
+     * @class RowSelectionModel
+     * @memberof ko.grid
+     */
+    ko.grid.RowSelectionModel = function ( options ) {
+        var last_elem;
+
+        if (!this) {
+            return new ko.grid.RowSelectionModel(options);
+        }
+
+        ko.grid.SelectionModel.call(this, options);
+
+        this.select = function ( row, evt ) {
+            var $row = $(row.node());
+            if (this.selected() === row &amp;&amp; evt[this.modifier]) {
+                this.selected(null);
+                $row.removeClass(this.class);
+                last_elem = null;
+            } else {
+                this.selected(row);
+                $row.addClass(this.class);
+                if (last_elem) {
+                    last_elem.removeClass(this.class);
+                }
+                last_elem = $row;
+            }
+        };
+    };
+
+    ko.grid.MultiRowSelectionModel = function ( options ) {
+        if (!this) {
+            return new ko.grid.MultiRowSelectionModel(options);
+        }
+
+        options = $.extend({
+            selected: ko.observableArray([ ])
+        }, options);
+
+        if (!ko.isObservableArray(options.selected)) {
+            options.selected = ko.observableArray(ko.unwrap(options.selected));
+        }
+
+        ko.grid.SelectionModel.call(this, options);
+
+        this.select = function ( row, evt ) {
+            var $row = $(row.node()), sel, sels = this.selected();
+            if (evt[this.modifier]) {
+                if (~(sels.indexOf(row))) {
+                    this.selected.remove(row);
+                    $row.removeClass(this.class);
+                } else {
+                    this.selected.push(row);
+                    $row.addClass(this.class);
+                }
+            } else {
+                if (sels.length !== 1 || sels[0] !== row) {
+                    for (sel in sels) {
+                        $(sels[sel].node()).removeClass(this.class);
+                    }
+                    this.selected([row]);
+                    $row.addClass(this.class);
+                } else if (sels[0] === row &amp;&amp; evt[this.modifier]) {
+                    this.selected([]);
+                    $row.removeClass(this.class);
+                }
+            }
+        };
+    };
+
+    // ========== CHILD MODEL ==========
+
+    /**
+     * model for child rows
+     * @static
+     * @memberof ko.grid
+     * @class ChildModel
+     * @param {Object|String} options fine tune controls or template
+     * @param {String} options.template how to render this child
+     * @param {String} [options.data] overrides row data for context
+     * @param {Function} [options.onbefore] called before child is shown
+     * @param {Function} [options.onafter] called after child is shown
+     * @param {Object} [options.animate] options for animation, don't if falsey
+     */
+    ko.grid.ChildModel = function ( options ) {
+
+        if (!(this instanceof ko.grid.ChildModel)) {
+            return new ko.grid.ChildModel(options);
+        }
+
+        if ("string" === typeof options) {
+            options = { template: options };
+        }
+
+        $.extend(this, {
+            onbefore: null
+        ,   onafter: null
+        ,   animate: null
+        }, options);
+
+        if (!this.template) {
+            throw new Error("grid: child model requires template");
+        }
+
+        if (this.animate &amp;&amp; this.animate.constructor !== Object) {
+            this.animate = { };
+        }
+
+        unwrap_template.call(this);
+
+        this.template =
+            "&lt;div class='grid_child_wrapper'" +
+            (this.animate ? " style='display:none'>" : ">") +
+            this.template + "&lt;/div>";
+    };
 
     // ========== KO BINDING ==========
 
@@ -358,6 +637,8 @@
      */
     ko.grid.detect_type = function ( item ) {
         switch (item.constructor.name) {
+            case "Boolean":
+                return ko.grid.TYPE_CHECKBOX;
             case "String":
                 return ko.grid.TYPE_STRING;
             default:
@@ -374,16 +655,23 @@
      * @param {Object} settings binding handler settings
      */
     ko.grid.create_column_template = function ( settings ) {
-        var data, index, columns = [ ];
+        var data, index;
+        settings.columnModels = [ ];
 
         if (!(data = settings.dataModel.rows()[0])) {
-            throw new Error("grid: cannot generate rows with no data");
+            throw new Error("grid: cannot generate columns with no data");
+        }
+
+        if (!(data instanceof Array)) {
+            settings.usejson = true;
         }
 
         for (index in data) {
-            columns.push(new ko.grid.ColumnModel({
-                name: index,
-                type: ko.grid.detect_type(data[index]())
+            settings.columnModels.push(new ko.grid.ColumnModel({
+                name: index
+            ,   type: (settings.readonly || index.indexOf("_") === 0)
+                ? "text"
+                : ko.grid.detect_type(ko.unwrap(data[index]))
             }));
         }
     };
@@ -401,7 +689,8 @@
         var row_template = $("&lt;tr>")
         ,   template
         ,   index
-        ,   model;
+        ,   model
+        ;
 
         if (!settings.columnModels) {
             ko.grid.create_column_template(settings);
@@ -413,23 +702,29 @@
                 settings.columnModels[index] = model =
                     new ko.grid.ColumnModel(model);
             }
+            // correct data members
+            if (settings.dataModel.usejson &amp;&amp; model.data === void 0) {
+                model.data = model.name;
+            }
             // add convenience members
             model.index = index;
-            model.value = (model.object) ? model.name : "$data[" + index + "]";
+            model.value = (model.data) ? model.name : "$data[" + index + "]";
             // auto detect settings
             if (model.searchable) {
                 settings._searchable = true;
             }
             // form cell and unwrap template if necessary
-            template = $("&lt;td class=\"" +
-                model.type + " " +
+            template = $("&lt;td class=\"type_" +
+                model.type + " name_" +
                 model.name + " " +
                 (model.className || "") + "\">");
-            model = (model.template instanceof Function)
-                ? model.template() : model.template;
 
             // add model to template
-            template.append(model);
+            template.append(
+                $("&lt;!-- ko with: {value: " + model.value + ", row: $row} -->"));
+            template.append(model.template);
+            template.append(
+                $("&lt;!-- /ko -->"));
             // add template to row
             row_template.append(template);
         }
@@ -445,6 +740,87 @@
         return row_template;
     };
 
+    // TODO: document
+    ko.grid.register_children = function ( row, models ) {
+        var children = [ ]
+        ,   templates = models.map(function ( model ) {
+                return model.template;
+            });
+
+        row.children = { };
+
+        row.children.shown = row.child.isShown;
+        row.children.hidden = function ( ) {
+            return !row.children.shown();
+        };
+
+        row.children.show = function ( ) {
+            if (row.children.hidden()) {
+                row.child(templates).show();
+                children = [ ];
+                row.child().each(function ( index ) {
+                    var child, data, model = models[index];
+
+                    children.push(child = this.children[0].children[0]);
+
+                    if (model.onbefore instanceof Function) {
+                        data = model.onbefore(child, row);
+                    }
+
+                    ko.applyBindings(model.data || data || {
+                        row: row
+                    ,   data: row.data()
+                    }, child);
+
+                    if (model.animate) {
+                        $(child).slideDown(model.animate);
+                    }
+
+                    if (model.onafter instanceof Function) {
+                        model.onafter(child, row);
+                    }
+                });
+            }
+        };
+
+        row.children.hide = function ( ) {
+            var count = 0
+            ,   done = function (  ) {
+                    if (count++ === children.length) {
+                        row.child.hide();
+                    }
+                };
+            if (row.children.shown()) {
+                children.forEach(function ( child, index ) {
+                    var model = models[index];
+
+                    if (model.onbefore instanceof Function) {
+                        model.onbefore(child, row);
+                    }
+                    if (model.animate) {
+                        model.animate._complete = model.complete;
+                        model.animate.complete = function (  ) {
+                            if (model.animate._complete instanceof Function) {
+                                model.animate._complete.apply(this, arguments);
+                            }
+                            if (model.onafter instanceof Function) {
+                                model.onafter(child, row);
+                            }
+                            done();
+                        };
+                        $(child).slideUp(model.animate);
+                    } else {
+                        if (model.onafter instanceof Function) {
+                            model.onafter(child, row);
+                        }
+                        done();
+                    }
+                });
+                done();
+            }
+        };
+    };
+
     /**
      * @namespace ko.bindingHandlers
      * @memberof ko
@@ -455,6 +831,7 @@
      * @memberof ko.bindingHandlers
      */
     ko.bindingHandlers.grid = {
+        // TODO: document valueAccessor properties
         /**
          * called to initialize grid binding within knockout
          * @memberof ko.bindingHandlers.grid
@@ -488,9 +865,19 @@
 
             settings._row_template = ko.grid.create_row_template(settings);
 
+
+            if (settings.childrenModels) {
+                settings.childrenModels =
+                settings.childrenModels.map(function ( template ) {
+                    if (!(template instanceof ko.grid.ChildModel)) {
+                        template = new ko.grid.ChildModel(template);
+                    }
+                    return template;
+                });
+            }
             // options construction
             options.columns = settings.columnModels;
-            options.data = settings.dataModel.rows;
+            options.data = ko.unwrap(settings.dataModel.rows);
             options.serverSide = settings.dataModel.request instanceof Function;
             if (!options.dom) {
                 options.dom = (options.allowColumnReorder ? "R" : "") +
@@ -519,6 +906,10 @@
                 ko.renderTemplate(settings._row_template,
                     ctx, { }, row, "replaceChildren");
 
+                if (settings.childrenModels) {
+                    ko.grid.register_children(_row, settings.childrenModels);
+                }
+
                 if (settings._createdRow instanceof Function) {
                     settings._createdRow.call(this, row, src, index);
                 }
@@ -537,25 +928,32 @@
             table = $(element).dataTable(options);
             api = table.api();
 
-            settings.dataModel.rows.subscribe(function ( items ) {
-                var nodes, count;
-
-                nodes = api.rows().nodes();
-
-                // unregister
-                if (nodes.length) {
-                    ko.utils.arrayForEach(nodes, function ( node ) {
-                        ko.cleanNode(node);
-                    });
-                }
-
-                count = settings.dataModel.rows.length;
-
-                table._fnAjaxUpdateDraw({
-                    aaData: items,
-                    iTotalRecords: count,
-                    iTotalDisplayRecords: count
+            var before, diff;
+            diff = function ( arr1, arr2 ) {
+                return arr1.filter(function ( item ) {
+                    return !~arr2.indexOf(item);
                 });
+            };
+
+            settings.dataModel.rows.subscribe(function ( items ) {
+                before = items.slice(0);
+            }, null, "beforeChange");
+            settings.dataModel.rows.subscribe(function ( items ) {
+                //var nodes, count;
+                var removed = diff(before, items)
+                ,   added = diff(items, before)
+                ;
+
+                removed.forEach(function ( item ) {
+                    api.row(function ( index, data ) {
+                        return item === data;
+                    }).remove();
+                });
+
+                api.rows.add(added);
+
+                api.draw();
+
             });
 
             if (settings.api instanceof Function) {
@@ -575,13 +973,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ko.grid.ColumnModel.html">ColumnModel</a></li><li><a href="ko.grid.DataModel.html">DataModel</a></li></ul><h3>Namespaces</h3><ul><li><a href="ko.html">ko</a></li><li><a href="ko.bindingHandlers.html">bindingHandlers</a></li><li><a href="ko.bindingHandlers.grid.html">grid</a></li><li><a href="ko.grid.html">grid</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ko.grid.ChildModel.html">ChildModel</a></li><li><a href="ko.grid.ColumnModel.html">ColumnModel</a></li><li><a href="ko.grid.DataModel.html">DataModel</a></li><li><a href="ko.grid.RowSelectionModel.html">RowSelectionModel</a></li><li><a href="ko.grid.SelectionModel.html">SelectionModel</a></li></ul><h3>Namespaces</h3><ul><li><a href="ko.html">ko</a></li><li><a href="ko.bindingHandlers.html">bindingHandlers</a></li><li><a href="ko.bindingHandlers.grid.html">grid</a></li><li><a href="ko.grid.html">grid</a></li><li><a href="ko.grid.templates.html">templates</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Mon Jun 29 2015 14:35:17 GMT-0400 (EDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Tue Jul 14 2015 11:36:26 GMT-0400 (EDT)
 </footer>
 
 <script> prettyPrint(); </script>

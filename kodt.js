@@ -249,6 +249,7 @@
      * @param {Function} [options.onaddrow=null] row normalization callback
      * @param {Function} [options.onaddcell=null] cell normalization callback
      * @param {Function} [options.onchange=null] data change callback
+     * @param {Function} [options.onbefore=null] data before change callback
      */
     ko.grid.DataModel = function ( options ) {
         var that;
@@ -296,6 +297,16 @@
                             column: column
                         });
                     });
+                }
+
+                if ("function" === typeof that.onbefore) {
+                    val.subscribe(function ( ) {
+                        that.onbefore({
+                            row: row,
+                            cell: cell,
+                            column: column
+                        });
+                    }, null, "beforeChange");
                 }
 
                 if ("function" === typeof that.onaddcell) {

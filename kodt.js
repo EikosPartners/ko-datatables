@@ -964,6 +964,10 @@
             if (settings.api instanceof Function) {
                 settings.api(api, table);
             }
+
+            ko.utils.domNodeDisposal.addDisposeCallback(element, function ( ) {
+                api.destroy();
+            });
         }
     };
 });

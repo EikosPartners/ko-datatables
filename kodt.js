@@ -940,10 +940,13 @@
                 });
             };
 
-            settings.dataModel.rows.subscribe(function ( items ) {
+            var subscribe_before, subscribe_change;
+            subscribe_before = settings.dataModel.rows.subscribe(
+            function ( items ) {
                 before = items.slice(0);
             }, null, "beforeChange");
-            settings.dataModel.rows.subscribe(function ( items ) {
+            subscribe_change = settings.dataModel.rows.subscribe(
+            function ( items ) {
                 //var nodes, count;
                 var removed = diff(before, items)
                 ,   added = diff(items, before)
@@ -967,6 +970,8 @@
 
             ko.utils.domNodeDisposal.addDisposeCallback(element, function ( ) {
                 api.destroy();
+                subscribe_before.dispose();
+                subscribe_change.dispose();
             });
         }
     };

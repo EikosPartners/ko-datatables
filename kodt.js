@@ -694,7 +694,8 @@
             }
             // add convenience members
             model.index = index;
-            model.value = "$data[" + (model.data ? model.name : index) + "]";
+            model.value = "$data[" +
+                (model.data ? ("'" + model.name + "'") : index) + "]";
             // auto detect settings
             if (model.searchable) {
                 settings._searchable = true;

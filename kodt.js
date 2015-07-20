@@ -26,7 +26,6 @@
     // ========== HELPERS ==========
 
     var pid_generator
-    ,   pid_for_column
     ,   make_element
     ,   make_binding
     ,   unwrap_template
@@ -46,6 +45,20 @@
             return prefix + id++;
         };
     };
+
+    /**
+     * generator for column pids
+     * @private
+     * @return  {String} pid in the form column_{pid}
+     */
+    pid_generator.column = pid_generator("column_");
+
+    /**
+     * generator for child pids
+     * @private
+     * @return  {String} pid in the form child_{pid}
+     */
+    pid_generator.child = pid_generator("child_");
 
     /**
      * creates a string form of an element
@@ -89,13 +102,6 @@
         }
         return {"data-bind": elems.join(",")};
     };
-
-    /**
-     * generator for column pids
-     * @private
-     * @return  {String} pid in the form column_{pid}
-     */
-    pid_for_column = pid_generator("column_");
 
     /**
      * unwraps template and changes to tags if identifier
@@ -392,7 +398,7 @@
         }
 
         if (this.name === void 0) {
-            this.name = pid_for_column();
+            this.name = pid_generator.column();
         }
 
         if (this.title === void 0) {
@@ -553,8 +559,10 @@
      * @param {Object|String} options fine tune controls or template
      * @param {String} options.template how to render this child
      * @param {String} [options.data] overrides row data for context
-     * @param {Function} [options.onbefore] called before child is shown
-     * @param {Function} [options.onafter] called after child is shown
+     * @param {Function} [options.onshowbefore] called before child is shown
+     * @param {Function} [options.onshowafter] called after child is shown
+     * @param {Function} [options.onhidebefore] called before child is hidden
+     * @param {Function} [options.onhideafter] called after child is hidden
      * @param {Object} [options.animate] options for animation, don't if falsey
      */
     ko.grid.ChildModel = function ( options ) {
@@ -568,10 +576,16 @@
         }
 
         $.extend(this, {
-            onbefore: null
-        ,   onafter: null
+            onshowbefore: null
+        ,   onhidebefore: null
+        ,   onshowafter: null
+        ,   onhideafter: null
         ,   animate: null
         }, options);
+
+        if (!this.name) {
+            this.name = pid_generator.child();
+        }
 
         if (!this.template) {
             throw new Error("grid: child model requires template");
@@ -680,7 +694,7 @@
             }
             // add convenience members
             model.index = index;
-            model.value = (model.data) ? model.name : "$data[" + index + "]";
+            model.value = "$data[" + (model.data ? model.name : index) + "]";
             // auto detect settings
             if (model.searchable) {
                 settings._searchable = true;
@@ -735,8 +749,8 @@
 
                     children.push(child = this.children[0].children[0]);
 
-                    if (model.onbefore instanceof Function) {
-                        data = model.onbefore(child, row);
+                    if (model.onshowbefore instanceof Function) {
+                        data = model.onshowbefore(child, row);
                     }
 
                     ko.applyBindings(model.data || data || {
@@ -748,8 +762,8 @@
                         $(child).slideDown(model.animate);
                     }
 
-                    if (model.onafter instanceof Function) {
-                        model.onafter(child, row);
+                    if (model.onshowafter instanceof Function) {
+                        model.onshowafter(child, row);
                     }
                 });
             }
@@ -766,24 +780,24 @@
                 children.forEach(function ( child, index ) {
                     var model = models[index];
 
-                    if (model.onbefore instanceof Function) {
-                        model.onbefore(child, row);
+                    if (model.onhidebefore instanceof Function) {
+                        model.onhidebefore(child, row);
                     }
                     if (model.animate) {
                         model.animate._complete = model.complete;
-                        model.animate.complete = function (  ) {
+                        model.animate.complete = function ( ) {
                             if (model.animate._complete instanceof Function) {
                                 model.animate._complete.apply(this, arguments);
                             }
-                            if (model.onafter instanceof Function) {
-                                model.onafter(child, row);
+                            if (model.onhideafter instanceof Function) {
+                                model.onhideafter(child, row);
                             }
                             done();
                         };
                         $(child).slideUp(model.animate);
                     } else {
-                        if (model.onafter instanceof Function) {
-                            model.onafter(child, row);
+                        if (model.onhideafter instanceof Function) {
+                            model.onhideafter(child, row);
                         }
                         done();
                     }
@@ -836,7 +850,6 @@
             }
 
             settings._row_template = ko.grid.create_row_template(settings);
-
 
             if (settings.childrenModels) {
                 settings.childrenModels =

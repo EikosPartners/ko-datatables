@@ -748,7 +748,7 @@
                 row.child().each(function ( index ) {
                     var child, data, model = models[index];
 
-                    this.attr("role", "child");
+                    this.setAttribute("role", "child");
 
                     children.push(child = this.children[0].children[0]);
 

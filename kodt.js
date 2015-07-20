@@ -926,12 +926,12 @@
             };
 
             // look for old table context
-            try {
-                $element.DataTable().destroy();
-            } catch ( ignored ) { }
+            if (element._kodt) {
+                element._kodt.destroy();
+            }
 
             table = $element.dataTable(options);
-            api = table.api();
+            element._kodt = api = table.api();
 
             var before, diff;
             diff = function ( arr1, arr2 ) {

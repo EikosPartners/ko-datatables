@@ -925,11 +925,6 @@
                 }
             };
 
-            // look for old table context
-            if (element._kodt) {
-                element._kodt.destroy();
-            }
-
             table = $element.dataTable(options);
             element._kodt = api = table.api();
 
@@ -969,7 +964,6 @@
             }
 
             ko.utils.domNodeDisposal.addDisposeCallback(element, function ( ) {
-                api.destroy();
                 subscribe_before.dispose();
                 subscribe_change.dispose();
             });

@@ -307,7 +307,7 @@
 
                 if ("function" === typeof that.onbefore) {
                     val.subscribe(function ( ) {
-                        that.onbefore({
+                        return that.onbefore({
                             row: row,
                             cell: cell,
                             column: column
@@ -613,13 +613,13 @@
      * @param {Any} item item to detect type of
      * @return {String} type of passed item
      * @example
-     *      var old_detect = ko.grid.detect_type;
-     *      ko.grid.detect_type = function ( item ) {
-     *          if ("MyClass" === item.constructor.name) {
-     *              return "mytype";
-     *          }
-     *          return old_detect(item);
-     *      };
+     *   var old_detect = ko.grid.detect_type;
+     *   ko.grid.detect_type = function ( item ) {
+     *       if ("MyClass" === item.constructor.name) {
+     *           return "mytype";
+     *       }
+     *       return old_detect(item);
+     *   };
      */
     ko.grid.detect_type = function ( item ) {
         switch (item.constructor.name) {
@@ -841,7 +841,13 @@
             // jshint unused: true
             ,   bindingContext
         ) {
-            var settings, options, table, api;
+            var settings, options, table, api, $element;
+
+            if (!(element instanceof HTMLTableElement)) {
+                throw new TypeError("grid: expected table element");
+            }
+
+            $element = $(element);
 
             settings = valueAccessor() || { };
             settings.options = settings.options || { };
@@ -899,6 +905,7 @@
                 _cells.length = 0;
                 Array.prototype.push.apply(_cells, row.children);
 
+
                 if (settings.childrenModels) {
                     ko.grid.register_children(_row, settings.childrenModels);
                 }
@@ -918,7 +925,12 @@
                 }
             };
 
-            table = $(element).dataTable(options);
+            // look for old table context
+            try {
+                $element.DataTable().destroy();
+            } catch ( ignored ) { }
+
+            table = $element.dataTable(options);
             api = table.api();
 
             var before, diff;

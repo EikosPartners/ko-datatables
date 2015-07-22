@@ -279,15 +279,21 @@
         }, options);
 
         this.mapper = function ( row ) {
-            var obj, index, convert;
+            var obj, index, convert
+            ,   make_api = function ( selector ) {
+                    return {
+                        row: row
+                    ,   column: row.column(selector)
+                    ,   cell: row.cell(row.node(), selector)
+                    };
+                }
+            ;
 
             obj = row.data();
 
             convert = function ( val, index ) {
                 var selector = obj instanceof Array ? index : index + ":name"
-                ,   column = row.column(selector)
-                ,   cell = row.cell(row.node(), selector)
-                ;
+                ,   api;
 
                 if (!ko.isObservable(val)) {
                     val = ko.observable(val);
@@ -297,26 +303,18 @@
 
                 if ("function" === typeof that.onchange) {
                     val.subscribe(function ( ) {
-                        that.onchange({
-                            row: row,
-                            cell: cell,
-                            column: column
-                        });
+                        that.onchange(api || (api = make_api(selector)));
                     });
                 }
 
                 if ("function" === typeof that.onbefore) {
                     val.subscribe(function ( ) {
-                        return that.onbefore({
-                            row: row,
-                            cell: cell,
-                            column: column
-                        });
+                        return that.onbefore(api || (api = make_api(selector)));
                     }, null, "beforeChange");
                 }
 
                 if ("function" === typeof that.onaddcell) {
-                    that.onaddcell.call(that, cell);
+                    that.onaddcell.call(that, row, selector);
                 }
             };
 

@@ -335,8 +335,8 @@
         }
 
         if ("function" === typeof that.onrequest) {
-            that.refresh = function ( ) {
-                that.onrequest(this, function ( error, rows ) {
+            that.refresh = function ( information ) {
+                that.onrequest.call(this, information, function ( error, rows ) {
                     // TODO: error handler
                     if (error) { return; }
                     if (rows) {
@@ -870,7 +870,7 @@
             // options construction
             options.columns = settings.columnModels;
             options.data = ko.unwrap(settings.dataModel.rows);
-            options.serverSide = settings.dataModel.request instanceof Function;
+            options.serverSide = settings.dataModel.onrequest instanceof Function;
             if (!options.dom) {
                 options.dom = (options.allowColumnReorder ? "R" : "") +
                     "ti" + (options.scrollY ? "S" : "p") +
@@ -879,8 +879,13 @@
 
             if (options.serverSide) {
                 options.serverData = function ( source, data ) {
-                    // TODO: tie into data model
-                    console.log(source, data);
+                    var i, len, val;
+                    source = { };
+                    for (i = 0, len = data.length; i < len; i++) {
+                        val = data[i];
+                        source[val.name] = val.value;
+                    }
+                    settings.dataModel.refresh(source);
                 };
             }
 

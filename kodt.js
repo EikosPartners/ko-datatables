@@ -336,7 +336,8 @@
 
         if ("function" === typeof that.onrequest) {
             that.refresh = function ( information ) {
-                that.onrequest.call(this, information, function ( error, rows ) {
+                that.onrequest.call(this, information,
+                function ( error, rows ) {
                     // TODO: error handler
                     if (error) { return; }
                     if (rows) {
@@ -670,9 +671,7 @@
      * @return {Element} row template
      */
     ko.grid.create_row_template = function ( settings ) {
-        var row_template = $("<tr>")
-        ,   template
-        ,   index
+        var index
         ,   model
         ;
 
@@ -692,37 +691,21 @@
             }
             // add convenience members
             model.index = index;
-            model.value = "$data[" +
-                (model.data ? ("'" + model.name + "'") : index) + "]";
+            model.value = model.data ? model.name : index;
             // auto detect settings
             if (model.searchable) {
                 settings._searchable = true;
             }
-            // form cell and unwrap template if necessary
-            template = $("<td class=\"type_" +
-                model.type + " name_" +
-                model.name + " " +
-                (model.className || "") + "\">");
 
-            // add model to template
-            template.append(
-                $("<!-- ko with: {value: " + model.value + ", row: $row} -->"));
-            template.append(model.template);
-            template.append(
-                $("<!-- /ko -->"));
-            // add template to row
-            row_template.append(template);
+            model._template = $("<td>");
+            model._template.append(model.template);
+
+            model._template = model._template[0];
+
+            new ko.templateSources.anonymousTemplate(model._template)
+                .nodes(model._template);
+
         }
-
-        // unwrap from jquery
-        row_template = row_template[0];
-
-        // register to anonymous template
-        new ko.templateSources.anonymousTemplate(row_template)
-            .nodes(row_template);
-        // TODO: fix memory leak
-
-        return row_template;
     };
 
     // TODO: document
@@ -856,7 +839,7 @@
                 settings.dataModel = new ko.grid.DataModel(settings.dataModel);
             }
 
-            settings._row_template = ko.grid.create_row_template(settings);
+            ko.grid.create_row_template(settings);
 
             if (settings.childrenModels) {
                 settings.childrenModels =
@@ -870,7 +853,8 @@
             // options construction
             options.columns = settings.columnModels;
             options.data = ko.unwrap(settings.dataModel.rows);
-            options.serverSide = settings.dataModel.onrequest instanceof Function;
+            options.serverSide =
+                settings.dataModel.onrequest instanceof Function;
             if (!options.dom) {
                 options.dom = (options.allowColumnReorder ? "R" : "") +
                     "ti" + (options.scrollY ? "S" : "p") +
@@ -891,23 +875,41 @@
 
             settings._createdRow = options.createdRow;
             options.createdRow = function ( row, src, index ) {
-                var $row, _row, ctx, _cells;
+                var $row, _row, data, rowContext, idx;
 
                 $row = $(row);
                 _row = this.api().row($row);
-                _cells = this.fnSettings().aoData[index].anCells;
-                ctx = settings.dataModel.mapper(_row);
+                data = settings.dataModel.mapper(_row);
 
-                ctx = bindingContext.createChildContext(ctx, settings.as);
-                ctx.$row = _row;
+                rowContext = bindingContext.createChildContext(data, "row");
+                rowContext.$api = _row;
 
-                ko.renderTemplate(settings._row_template,
-                    ctx, { }, row, "replaceChildren");
+                idx = 0;
+                settings.columnModels.forEach(function ( column ) {
+                    var cellContext, ref, cellement;
 
-                // reset internal representation of cells
-                _cells.length = 0;
-                Array.prototype.push.apply(_cells, row.children);
+                    cellContext = rowContext.createChildContext({
+                        value: data[column.value]
+                    ,   column: column
+                    }, "cell");
 
+                    if ((ref = column.visible) === void 0 || ko.unwrap(ref)) {
+                        if (ko.isObservable(ref)) {
+                            ref.subscribe(function ( change ) {
+                                _row.column(column.index).visible(change);
+                            });
+                            setTimeout(function (  ) {
+                                _row.column(column.index).visible(ref());
+                            });
+                        }
+                        cellement = row.children[idx++];
+                        cellement.className +=
+                            " type_" + column.type +
+                            " name_" + column.name;
+                        ko.renderTemplate(column._template,
+                            cellContext, { }, cellement, "replaceChildren");
+                    }
+                });
 
                 if (settings.childrenModels) {
                     ko.grid.register_children(_row, settings.childrenModels);

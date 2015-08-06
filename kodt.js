@@ -973,6 +973,8 @@
                 subscribe_before.dispose();
                 subscribe_change.dispose();
             });
+
+            return { controlsDescendantBindings: true };
         }
     };
 });

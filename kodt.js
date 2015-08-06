@@ -738,7 +738,7 @@
                     }
 
                     ko.applyBindings(context.createChildContext(
-                    mode.data || data || {
+                    model.data || data || {
                         row: row, data: row.data()
                     }, "child"), child);
 

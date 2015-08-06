@@ -709,7 +709,7 @@
     };
 
     // TODO: document
-    ko.grid.register_children = function ( row, models ) {
+    ko.grid.register_children = function ( row, context, models ) {
         var children = [ ]
         ,   templates = models.map(function ( model ) {
                 return model.template;
@@ -737,10 +737,10 @@
                         data = model.onshowbefore(child, row);
                     }
 
-                    ko.applyBindings(model.data || data || {
-                        row: row
-                    ,   data: row.data()
-                    }, child);
+                    ko.applyBindings(context.createChildContext(
+                    mode.data || data || {
+                        row: row, data: row.data()
+                    }, "child"), child);
 
                     if (model.animate) {
                         $(child).slideDown(model.animate);
@@ -912,7 +912,8 @@
                 });
 
                 if (settings.childrenModels) {
-                    ko.grid.register_children(_row, settings.childrenModels);
+                    ko.grid.register_children(
+                        _row, rowContext, settings.childrenModels);
                 }
 
                 if (settings._createdRow instanceof Function) {

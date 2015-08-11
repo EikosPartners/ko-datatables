@@ -988,12 +988,22 @@
             });
 
             if (settings.api instanceof Function) {
+                // keep for backwards compat
                 settings.api(api, table);
+            }
+            if (settings.oncreatetable instanceof Function) {
+                settings.oncreatetable(api, table);
             }
 
             ko.utils.domNodeDisposal.addDisposeCallback(element, function ( ) {
                 subscribe_before.dispose();
                 subscribe_change.dispose();
+
+                api.destroy();
+
+                if (settings.ondestroytable instanceof Function) {
+                    settings.ondestroytable(api, table);
+                }
             });
 
             return { controlsDescendantBindings: true };

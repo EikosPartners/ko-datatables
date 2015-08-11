@@ -268,11 +268,13 @@
 
         $.extend(this, {
             rows: [  ]
-        ,   page: 1
-        ,   pageSize: 20
+
+        ,   start: 0
+        ,   count: 50
+        ,   search: ""
+        ,   order: null
+
         ,   usejson: true
-        ,   sortField: null
-        ,   sortOrder: ko.grid.SORT_ASC
         ,   onrequest: null
         ,   onadd: null
         ,   onchange: null
@@ -335,8 +337,13 @@
         }
 
         if ("function" === typeof that.onrequest) {
-            that.refresh = function ( information ) {
-                that.onrequest.call(this, information,
+            that.refresh = function ( ) {
+                that.onrequest.call(this, {
+                    start: that.start.peek()
+                ,   count: that.count.peek()
+                ,   search: that.search.peek()
+                ,   order: that.order.peek()
+                },
                 function ( error, rows ) {
                     // TODO: error handler
                     if (error) { return; }
@@ -349,17 +356,17 @@
             that.refresh = function ( ) { };
         }
 
-        [   "page"
-        ,   "pageSize"
-        ,   "sortField"
-        ,   "sortOrder"
+        [   "start"
+        ,   "count"
+        ,   "search"
+        ,   "order"
         ].forEach(function ( name ) {
             if (!ko.isObservable(that[name])) {
                 that[name] = ko.observable(that[name]);
             }
 
             if ("function" === typeof that.onrequest) {
-                that[name].subscribe(that.onrefresh);
+                that[name].subscribe(that.refresh);
             }
         });
     };
@@ -862,14 +869,21 @@
             }
 
             if (options.serverSide) {
-                options.serverData = function ( source, data ) {
-                    var i, len, val;
-                    source = { };
-                    for (i = 0, len = data.length; i < len; i++) {
-                        val = data[i];
-                        source[val.name] = val.value;
+                options.ajax = options.ajax || function ( data, callback ) {
+                    var order;
+                    settings.dataModel.start(data.start);
+                    settings.dataModel.count(data.length);
+                    settings.dataModel.search(data.search.value);
+                    order = settings.dataModel.order.peek() || {};
+                    // TODO: handle all orders
+                    if (order.column !== data.order[0].column ||
+                        order.dir !== data.order[0].dir) {
+                        settings.dataModel.order(data.order[0]);
                     }
-                    settings.dataModel.refresh(source);
+                    // TODO: handle all column filters
+                    if (!settings.server_callback) {
+                        settings.server_callback = callback;
+                    }
                 };
             }
 
@@ -949,20 +963,28 @@
             subscribe_change = settings.dataModel.rows.subscribe(
             function ( items ) {
                 //var nodes, count;
-                var removed = diff(before, items)
-                ,   added = diff(items, before)
-                ;
+                if (settings.server_callback) {
+                    settings.server_callback({
+                        data: items
+                    ,   recordsTotal: items.length
+                    ,   recordsFiltered: items.length
+                    });
 
-                removed.forEach(function ( item ) {
-                    api.row(function ( index, data ) {
-                        return item === data;
-                    }).remove();
-                });
+                } else {
+                    var removed = diff(before, items)
+                    ,   added = diff(items, before)
+                    ;
 
-                api.rows.add(added);
+                    removed.forEach(function ( item ) {
+                        api.row(function ( index, data ) {
+                            return item === data;
+                        }).remove();
+                    });
 
-                api.draw();
+                    api.rows.add(added);
 
+                    api.draw();
+                }
             });
 
             if (settings.api instanceof Function) {

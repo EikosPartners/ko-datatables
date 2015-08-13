@@ -426,6 +426,10 @@
                 "<!-- ko template:'" + this.type + "' --><!-- /ko -->";
         }
 
+        if (this.display) {
+            this.visible = ko.unwrap(this.display);
+        }
+
         unwrap_template.call(this);
     };
 
@@ -496,7 +500,7 @@
             return new ko.grid.RowSelectionModel(options);
         }
 
-        ko.grid.SelectionModel.call(this, options);
+    ko.grid.SelectionModel.call(this, options);
 
         this.select = function ( row, evt ) {
             var $row = $(row.node());
@@ -907,15 +911,7 @@
                     ,   column: column
                     }, "cell");
 
-                    if ((ref = column.visible) === void 0 || ko.unwrap(ref)) {
-                        if (ko.isObservable(ref)) {
-                            ref.subscribe(function ( change ) {
-                                _row.column(column.index).visible(change);
-                            });
-                            setTimeout(function (  ) {
-                                _row.column(column.index).visible(ref());
-                            });
-                        }
+                    if ((ref = column.display) === void 0 || ko.unwrap(ref)) {
                         cellement = row.children[idx++];
                         cellement.className +=
                             " type_" + column.type +
@@ -947,6 +943,15 @@
 
             table = $element.dataTable(options);
             element._kodt = api = table.api();
+
+            settings.columnModels.forEach(function ( column, index ) {
+                if (column.display != null) {
+                    var column_api = api.column(index);
+                    column.display.subscribe(function ( change ) {
+                        column_api.visible(change);
+                    });
+                }
+            });
 
             var before, diff;
             diff = function ( arr1, arr2 ) {

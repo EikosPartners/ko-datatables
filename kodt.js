@@ -643,14 +643,14 @@
     };
 
     /**
-     * generator for column templates
+     * generator for column models
      * @private
      * @static
      * @memberof ko.grid
-     * @function create_column_template
+     * @function create_column_models
      * @param {Object} settings binding handler settings
      */
-    ko.grid.create_column_template = function ( settings ) {
+    ko.grid.create_column_models = function ( settings ) {
         var data, index;
         settings.columnModels = [ ];
 
@@ -673,21 +673,21 @@
     };
 
     /**
-     * factory for row templates
+     * setup and normalize column models
      * @private
      * @static
      * @memberof ko.grid
-     * @function create_row_template
+     * @function prepare_column_models
      * @param {Object} settings binding handler settings
      * @return {Element} row template
      */
-    ko.grid.create_row_template = function ( settings ) {
+    ko.grid.prepare_column_models = function ( settings ) {
         var index
         ,   model
         ;
 
         if (!settings.columnModels) {
-            ko.grid.create_column_template(settings);
+            ko.grid.create_column_models(settings);
         }
 
         for (index in settings.columnModels) {
@@ -699,6 +699,9 @@
             // correct data members
             if (settings.dataModel.usejson && model.data === void 0) {
                 model.data = model.name;
+            }
+            if (settings.order === void 0 && model.orderable !== false) {
+                settings.order = index;
             }
             // add convenience members
             model.index = index;
@@ -850,7 +853,7 @@
                 settings.dataModel = new ko.grid.DataModel(settings.dataModel);
             }
 
-            ko.grid.create_row_template(settings);
+            ko.grid.prepare_column_models(settings);
 
             if (settings.childrenModels) {
                 settings.childrenModels =
@@ -864,6 +867,7 @@
             // options construction
             options.columns = settings.columnModels;
             options.data = ko.unwrap(settings.dataModel.rows);
+            options.order = options.order || [[settings.order, "asc"]];
             options.serverSide =
                 settings.dataModel.onrequest instanceof Function;
             if (!options.dom) {

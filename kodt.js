@@ -23,6 +23,13 @@
 
     /** @namespace ko */
 
+    // polyfill
+    if (!ko.isObservableArray) {
+        ko.isObservableArray = function ( o ) {
+            return ko.isObservable(o) && "function" === typeof o.push;
+        };
+    }
+
     // ========== HELPERS ==========
 
     var pid_generator
@@ -118,13 +125,6 @@
         }
     };
 
-    // polyfill
-    if (!ko.isObservableArray) {
-        ko.isObservableArray = function ( o ) {
-            return ko.isObservable(o) && o.push;
-        };
-    }
-
     /**
      * @namespace ko.grid
      * @memberof ko
@@ -135,17 +135,17 @@
          * @static
          * @memberof ko.grid
          * @member SORT_ASC
-         * @default ASC
+         * @default asc
          */
-        SORT_ASC: "ASC"
+        SORT_ASC: "asc"
         /**
          * descending order for sorting
          * @static
          * @memberof ko.grid
          * @member SORT_DSC
-         * @default DEC
+         * @default desc
          */
-    ,   SORT_DSC: "DEC"
+    ,   SORT_DSC: "desc"
         /**
          * control column type
          * @static
@@ -176,7 +176,7 @@
          * @memberof ko.grid
          * @member TYPE_CHECKBOX
          * @default checkbox
-         */
+         */ // TODO: call this BOOLEAN
     ,   TYPE_CHECKBOX: "checkbox"
     };
 
@@ -243,7 +243,7 @@
      * @class DataModel
      * @memberof ko.grid
      * @param {Object} options overridable settings
-     * @param {Array<Object|Array>} [options.rows=[ ]] initial dataset
+     * @param {Array<Object|Array>} [options.rows=[]] initial dataset
      * @param {Number}  [options.page=1] current page location
      * @param {Number}  [options.pageSize=20] count of items per page
      * @param {Boolean} [options.usejson=true] treat rows as json objects
@@ -269,6 +269,7 @@
         $.extend(this, {
             rows: [  ]
 
+            // TODO: implement column based searching
         ,   start: 0
         ,   count: 50
         ,   search: ""
@@ -276,8 +277,10 @@
 
         ,   usejson: true
         ,   onrequest: null
-        ,   onadd: null
+        ,   onaddrow: null
+        ,   onaddcell: null
         ,   onchange: null
+        ,   onbefore: null
         }, options);
 
         this.mapper = function ( row ) {
@@ -321,7 +324,9 @@
             };
 
             for (index in obj) {
-                convert(obj[index], index);
+                if (obj.hasOwnProperty(index)) {
+                    convert(obj[index], index);
+                }
             }
 
             if ("function" === typeof that.onaddrow) {
@@ -333,6 +338,10 @@
 
         if (!ko.isObservableArray(that.rows)) {
             // TODO: preserve subscriptions
+            if (ko.isObservable(that.rows)) {
+                console.warn("grid: rows losing subscriptions, " +
+                   "make observable array");
+            }
             that.rows = ko.observableArray(ko.unwrap(this.rows));
         }
 
@@ -399,6 +408,14 @@
             $.extend(this, options);
         }
 
+        if (this.control) {
+            this.title = "";
+            this.className = (this.className || "") + " control";
+            this.orderable = false;
+            this.defaultContent = "";
+            this.type = ko.grid.TYPE_CONTROL;
+        }
+
         if (this.type === void 0) {
             this.type = ko.grid.TYPE_TEXT;
         }
@@ -413,17 +430,8 @@
                 .replace(/([a-z])([A-Z])/g, "$1 $2");
         }
 
-        if (this.control) {
-            this.title = "";
-            this.className = (this.className || "") + " control";
-            this.orderable = false;
-            this.defaultContent = "";
-            this.type = ko.grid.TYPE_CONTROL;
-        }
-
         if (this.template === void 0) {
-            this.template = ko.grid.templates[this.type] ||
-                "<!-- ko template:'" + this.type + "' --><!-- /ko -->";
+            this.template = ko.grid.templates[this.type] || this.type;
         }
 
         if (this.display) {
@@ -439,9 +447,10 @@
      * base selection model class
      * @memberof ko.grid
      * @class SelectionModel
+     * @abstract
      * @param {Object} [options] fine tune controls
      * @param {String} [options.class="active"] classname to apply on select
-     * @param {String} [options.modifier="meta"] key to activate modified state
+     * @param {String} [options.modifier="shift"] key to activate modified state
      * @param {Object|Function} [options.selected=ko.observable] selected item
      * @param {Function} [options.onchange=null] called when selection changes
      * @param {Function} [options.onbefore=null] called before selection change
@@ -461,7 +470,7 @@
 
         $.extend(this, {
             class: "active"
-        ,   modifier: "meta"
+        ,   modifier: "shift"
         ,   selected: ko.observable()
         ,   onchange: null
         ,   onbefore: null
@@ -492,7 +501,7 @@
     /**
      * @class RowSelectionModel
      * @memberof ko.grid
-     */
+     */ // TODO: document
     ko.grid.RowSelectionModel = function ( options ) {
         var last_elem;
 
@@ -500,14 +509,16 @@
             return new ko.grid.RowSelectionModel(options);
         }
 
-    ko.grid.SelectionModel.call(this, options);
+        ko.grid.SelectionModel.call(this, options);
 
         this.select = function ( row, evt ) {
             var $row = $(row.node());
-            if (this.selected() === row && evt[this.modifier]) {
-                this.selected(null);
-                $row.removeClass(this.class);
-                last_elem = null;
+            if (this.selected() === row) {
+                if (evt[this.modifier]) {
+                    this.selected(null);
+                    $row.removeClass(this.class);
+                    last_elem = null;
+                }
             } else {
                 this.selected(row);
                 $row.addClass(this.class);
@@ -537,7 +548,7 @@
         this.select = function ( row, evt ) {
             var $row = $(row.node()), sel, sels = this.selected();
             if (evt[this.modifier]) {
-                if (~(sels.indexOf(row))) {
+                if (-1 !== sels.indexOf(row)) {
                     this.selected.remove(row);
                     $row.removeClass(this.class);
                 } else {
@@ -559,6 +570,8 @@
         };
     };
 
+    // TODO: cell selection model
+
     // ========== CHILD MODEL ==========
 
     /**
@@ -573,7 +586,8 @@
      * @param {Function} [options.onshowafter] called after child is shown
      * @param {Function} [options.onhidebefore] called before child is hidden
      * @param {Function} [options.onhideafter] called after child is hidden
-     * @param {Object} [options.animate] options for animation, don't if falsey
+     * @param {Object|Boolean} [options.animate]
+     * options for animation, don't if falsey
      */
     ko.grid.ChildModel = function ( options ) {
 
@@ -649,7 +663,7 @@
      * @memberof ko.grid
      * @function create_column_models
      * @param {Object} settings binding handler settings
-     */
+     */ // TODO: finish documenting settings
     ko.grid.create_column_models = function ( settings ) {
         var data, index;
         settings.columnModels = [ ];
@@ -666,8 +680,7 @@
             settings.columnModels.push(new ko.grid.ColumnModel({
                 name: index
             ,   type: (settings.readonly || index.indexOf("_") === 0)
-                ? "text"
-                : ko.grid.detect_type(ko.unwrap(data[index]))
+                ? "text" : ko.grid.detect_type(ko.unwrap(data[index]))
             }));
         }
     };
@@ -680,7 +693,7 @@
      * @function prepare_column_models
      * @param {Object} settings binding handler settings
      * @return {Element} row template
-     */
+     */ // TODO: finish documenting settings
     ko.grid.prepare_column_models = function ( settings ) {
         var index
         ,   model
@@ -723,7 +736,7 @@
     };
 
     // TODO: document
-    ko.grid.register_children = function ( row, context, models ) {
+    ko.grid.prepare_child_models = function ( row, context, models ) {
         var children = [ ]
         ,   templates = models.map(function ( model ) {
                 return model.template;
@@ -879,6 +892,9 @@
             if (options.serverSide) {
                 options.ajax = options.ajax || function ( data, callback ) {
                     var order;
+                    if (!settings.server_callback) {
+                        settings.server_callback = callback;
+                    }
                     settings.dataModel.start(data.start);
                     settings.dataModel.count(data.length);
                     settings.dataModel.search(data.search.value);
@@ -889,9 +905,6 @@
                         settings.dataModel.order(data.order[0]);
                     }
                     // TODO: handle all column filters
-                    if (!settings.server_callback) {
-                        settings.server_callback = callback;
-                    }
                 };
             }
 
@@ -926,7 +939,7 @@
                 });
 
                 if (settings.childrenModels) {
-                    ko.grid.register_children(
+                    ko.grid.prepare_child_models(
                         _row, rowContext, settings.childrenModels);
                 }
 
@@ -949,8 +962,10 @@
             element._kodt = api = table.api();
 
             settings.columnModels.forEach(function ( column, index ) {
-                if (column.display != null) {
-                    var column_api = api.column(index);
+                var column_api;
+
+                if (ko.isObservable(column.display)) {
+                    column_api = api.column(index);
                     column.display.subscribe(function ( change ) {
                         column_api.visible(change);
                     });
@@ -958,6 +973,7 @@
             });
 
             var before, diff;
+            // TODO: replace with ko array diff
             diff = function ( arr1, arr2 ) {
                 return arr1.filter(function ( item ) {
                     return !~arr2.indexOf(item);
@@ -975,6 +991,7 @@
                 if (settings.server_callback) {
                     settings.server_callback({
                         data: items
+                        // TODO: get total from callback
                     ,   recordsTotal: items.length
                     ,   recordsFiltered: items.length
                     });
@@ -1000,6 +1017,7 @@
                 // keep for backwards compat
                 settings.api(api, table);
             }
+
             if (settings.oncreatetable instanceof Function) {
                 settings.oncreatetable(api, table);
             }

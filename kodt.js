@@ -878,7 +878,8 @@
             // jshint unused: true
             ,   bindingContext
         ) {
-            var settings, options, table, api, $element, index, model;
+            var settings, options, table, api, $element, index,
+                model, bind_cells;
 
             if (!(element instanceof HTMLTableElement)) {
                 throw new TypeError("grid: expected table element");
@@ -944,43 +945,56 @@
                 };
             }
 
-            settings._createdRow = options.createdRow;
-            options.createdRow = function ( row, src, index ) {
-                var $row, _row, data, rowContext, idx;
+            bind_cells = function ( row, rowContext, data, template ) {
+                var column, cellContext,
+                    api = this.api();
 
-                $row = $(row);
-                _row = this.api().row($row);
-                data = settings.dataModel.mapper(_row);
+                Array.prototype.slice.call(row.children).forEach(
+                function ( cell, index ) {
+                    if (!cell._bindings) {
+                        column = settings.columnModelsMap[
+                            api.column(index).dataSrc()
+                        ];
+                        cellContext = rowContext.createChildContext({
+                            value: data[column.value] || column.title
+                        ,   column: column
+                        }, "cell");
+
+                        cell.className +=
+                            " type_" + column.type +
+                            " name_" + column.name;
+                        ko.renderTemplate(column[template],
+                            cellContext, { }, cell, "replaceChildren");
+
+                        cell._bindings = cellContext;
+                    }
+                });
+            };
+
+            settings._row_callback = options.createdRow;
+            settings._row_bindings = new WeakMap();
+
+            options.createdRow = function ( row, data, index ) {
+                var _row, rowContext, binding;
+
+                api     = this.api();
+                _row    = api.row($(row));
+                data    = settings.dataModel.mapper(_row);
 
                 rowContext = bindingContext.createChildContext(data, "row");
                 rowContext.$api = _row;
 
-                idx = 0;
-                settings.columnModels.forEach(function ( column ) {
-                    var cellContext, ref, cellement;
-
-                    cellContext = rowContext.createChildContext({
-                        value: data[column.value]
-                    ,   column: column
-                    }, "cell");
-
-                    if ((ref = column.display) === void 0 || ko.unwrap(ref)) {
-                        cellement = row.children[idx++];
-                        cellement.className +=
-                            " type_" + column.type +
-                            " name_" + column.name;
-                        ko.renderTemplate(column._template,
-                            cellContext, { }, cellement, "replaceChildren");
-                    }
-                });
+                settings._row_bindings.set(data, binding =
+                    bind_cells.bind(this, row, rowContext, data, "_template"));
+                binding();
 
                 if (settings.childrenModels) {
                     ko.grid.prepare_child_models(
                         _row, rowContext, settings.childrenModels);
                 }
 
-                if (settings._createdRow instanceof Function) {
-                    settings._createdRow.call(this, row, src, index);
+                if (settings._row_callback instanceof Function) {
+                    settings._row_callback.apply(this, arguments);
                 }
 
                 if (settings.oncreaterow instanceof Function) {
@@ -994,41 +1008,20 @@
                 }
             };
 
-            settings._headerCallback = options.headerCallback;
-            settings._header_tr = null;
-            settings._header_data = null;
+            settings._header_callback = options.headerCallback;
+            settings._header_binding = null;
 
-            options.headerCallback = function ( thead_tr, data ) {
+            options.headerCallback = function ( row, data ) {
                 var headerContext, cellContext, column, api;
                 api = this.api();
-                settings._header_tr = thead_tr;
-                settings._header_data = data;
 
                 headerContext = bindingContext.createChildContext(data, "row");
 
-                Array.prototype.slice.call(thead_tr.children).forEach(
-                function ( cell, index ) {
-                    if (!cell._bindings) {
-                        column = settings.columnModelsMap[
-                            api.column(index).dataSrc()
-                        ];
-                        cellContext = headerContext.createChildContext({
-                            value: column.title,
-                            column: column
-                        }, "cell");
+                settings._header_binding = bind_cells.bind(this, row, headerContext, data, "_header");
+                settings._header_binding();
 
-                        cell.className +=
-                            " type_" + column.type +
-                            " name_" + column.name;
-                        ko.renderTemplate(column._header,
-                            cellContext, { }, cell, "replaceChildren");
-
-                        cell._bindings = cellContext;
-                    }
-                });
-
-                if ("function" === typeof settings._headerCallback) {
-                     settings._headerCallback.apply(this, arguments);
+                if (settings._header_callback instanceof Function) {
+                     settings._header_callback.apply(this, arguments);
                 }
             };
 
@@ -1046,9 +1039,12 @@
                         // reapply bindings to the newly visible columns
                         if (change) {
                             setTimeout(function () {
-                                options.headerCallback.call({
-                                    api: function () { return api; }
-                                }, settings._header_tr, settings._header_data);
+                                settings._header_binding();
+
+                                settings.dataModel.rows.peek().forEach(
+                                function ( data ) {
+                                    settings._row_bindings.get(data)();
+                                });
                             });
                         }
                     });
@@ -1078,7 +1074,6 @@
                     ,   recordsTotal: items.length
                     ,   recordsFiltered: items.length
                     });
-
                 } else {
                     var removed = diff(before, items)
                     ,   added = diff(items, before)
@@ -1120,4 +1115,3 @@
         }
     };
 });
-

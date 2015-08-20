@@ -437,15 +437,15 @@
         if (this.template === void 0) {
             this.template = ko.grid.templates[this.type] || this.type;
         }
-        
+
         if (this.header === void 0) {
-            this.header = make_element("span", make_binding({text: "value"})); 
+            this.header = make_element("span", make_binding({text: "value"}));
         }
-        
+
         if (this.footer === void 0) {
             this.footer = "";
         }
-        
+
         if (this.display) {
             this.visible = ko.unwrap(this.display);
         }
@@ -745,7 +745,7 @@
 
             new ko.templateSources.anonymousTemplate(model._template)
                 .nodes(model._template);
-                
+
             model._header = $("<th>");
             model._header.append(model.header);
 
@@ -753,7 +753,7 @@
 
             new ko.templateSources.anonymousTemplate(model._header)
                 .nodes(model._header);
-            
+
             model._footer = $("<th>");
             model._footer.append(model.footer);
 
@@ -906,13 +906,13 @@
                     return template;
                 });
             }
-            
+
             settings.columnModelsMap = { };
             for (index in settings.columnModels) {
                 model = settings.columnModels[index];
                 settings.columnModelsMap[model.name] = model;
             }
-            
+
             // options construction
             options.columns = settings.columnModels;
             options.data = ko.unwrap(settings.dataModel.rows);
@@ -943,7 +943,7 @@
                     // TODO: handle all column filters
                 };
             }
-            
+
             settings._createdRow = options.createdRow;
             options.createdRow = function ( row, src, index ) {
                 var $row, _row, data, rowContext, idx;
@@ -993,42 +993,45 @@
                     });
                 }
             };
-            
+
             settings._headerCallback = options.headerCallback;
             settings._header_tr = null;
             settings._header_data = null;
-            
-            options.headerCallback = function ( thead_tr, data ) { 
+
+            options.headerCallback = function ( thead_tr, data ) {
                 var headerContext, cellContext, column, api;
                 api = this.api();
                 settings._header_tr = thead_tr;
                 settings._header_data = data;
-                
+
                 headerContext = bindingContext.createChildContext(data, "row");
-                
-                Array.prototype.slice.call(thead_tr.children).forEach(function ( cell, index ) {
+
+                Array.prototype.slice.call(thead_tr.children).forEach(
+                function ( cell, index ) {
                     if (!cell._bindings) {
-                        column = settings.columnModelsMap[api.column(index).dataSrc()];
+                        column = settings.columnModelsMap[
+                            api.column(index).dataSrc()
+                        ];
                         cellContext = headerContext.createChildContext({
                             value: column.title,
                             column: column
                         }, "cell");
-                        
+
                         cell.className +=
                             " type_" + column.type +
                             " name_" + column.name;
                         ko.renderTemplate(column._header,
-                            cellContext, { }, cell, "replaceChildren"); 
-                                         
+                            cellContext, { }, cell, "replaceChildren");
+
                         cell._bindings = cellContext;
-                    } 
+                    }
                 });
-                
+
                 if ("function" === typeof settings._headerCallback) {
                      settings._headerCallback.apply(this, arguments);
-                }  
+                }
             };
-            
+
             table = $element.dataTable(options);
             element._kodt = api = table.api();
 
@@ -1039,13 +1042,13 @@
                     column_api = api.column(index);
                     column.display.subscribe(function ( change ) {
                         column_api.visible(change);
-                        
+
                         // reapply bindings to the newly visible columns
                         if (change) {
                             setTimeout(function () {
                                 options.headerCallback.call({
                                     api: function () { return api; }
-                                }, settings._header_tr, settings._header_data);    
+                                }, settings._header_tr, settings._header_data);
                             });
                         }
                     });

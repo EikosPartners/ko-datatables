@@ -946,15 +946,16 @@
             }
 
             bind_cells = function ( row, rowContext, data, template ) {
-                var column, cellContext,
+                var column, column_api, cellContext,
                     api = this.api();
 
                 Array.prototype.slice.call(row.children).forEach(
                 function ( cell, index ) {
                     if (!cell._bindings) {
                         column = settings.columnModelsMap[
-                            api.column(index).dataSrc()
+                            (column_api = api.column(index)).dataSrc()
                         ];
+                        column.api = column_api;
                         cellContext = rowContext.createChildContext({
                             value: data[column.value] || column.title
                         ,   column: column
@@ -972,9 +973,9 @@
             };
 
             settings._row_callback = options.createdRow;
-            settings._row_bindings = new WeakMap();
+            settings._row_bindings = new window.WeakMap();
 
-            options.createdRow = function ( row, data, index ) {
+            options.createdRow = function ( row, data ) {
                 var _row, rowContext, binding;
 
                 api     = this.api();
@@ -1012,12 +1013,13 @@
             settings._header_binding = null;
 
             options.headerCallback = function ( row, data ) {
-                var headerContext, cellContext, column, api;
+                var headerContext, api;
                 api = this.api();
 
                 headerContext = bindingContext.createChildContext(data, "row");
 
-                settings._header_binding = bind_cells.bind(this, row, headerContext, data, "_header");
+                settings._header_binding = bind_cells.bind(
+                    this, row, headerContext, data, "_header");
                 settings._header_binding();
 
                 if (settings._header_callback instanceof Function) {
@@ -1115,3 +1117,4 @@
         }
     };
 });
+

@@ -1087,7 +1087,6 @@
                if (settings.server_callback) {
                    settings.server_callback({
                        data: items
-                       // TODO: get total from callback
                    ,   recordsTotal: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    ,   recordsFiltered: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    });

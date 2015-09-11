@@ -284,6 +284,7 @@
        ,   onaddcell: null
        ,   onchange: null
        ,   onbefore: null
+       ,   serverTotal: null
        }, options);
 
        this.mapper = function ( row ) {
@@ -1087,8 +1088,8 @@
                    settings.server_callback({
                        data: items
                        // TODO: get total from callback
-                   ,   recordsTotal: items.length
-                   ,   recordsFiltered: items.length
+                   ,   recordsTotal: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
+                   ,   recordsFiltered: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    });
                } else {
                    var removed = diff(before, items)

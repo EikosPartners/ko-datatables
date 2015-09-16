@@ -1,6 +1,6 @@
 {
   "name": "ko-datatables",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "homepage": "http://eikospartners.github.io/ko-datatables/",
   "description": "A Knockout component for DataTables",
   "main": "kodt.js",

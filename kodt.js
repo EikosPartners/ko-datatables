@@ -1127,6 +1127,16 @@
                }
            });
 
+           // update table width observable on window resize
+           var $container = $(api.table().container());
+           if (ko.isObservable(options.tableWidth)) {
+               options.tableWidth($container.width());
+               
+               $(window).resize(function () {
+                   options.tableWidth($container.width());
+               });
+           }
+           
            return { controlsDescendantBindings: true };
        }
    };

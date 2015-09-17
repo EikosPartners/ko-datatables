@@ -447,10 +447,6 @@
            this.footer = "";
        }
 
-       if (this.display) {
-           this.visible = ko.unwrap(this.display);
-       }
-
        unwrap_template.call(this);
        unwrap_template.call(this, "header");
        unwrap_template.call(this, "footer");
@@ -1045,29 +1041,6 @@
            table = $element.dataTable(options);
            element._kodt = api = table.api();
 
-           settings.columnModels.forEach(function ( column, index ) {
-               var column_api;
-
-               if (ko.isObservable(column.display)) {
-                   column_api = api.column(index);
-                   column.display.subscribe(function ( change ) {
-                       column_api.visible(change);
-
-                       // reapply bindings to the newly visible columns
-                       if (change) {
-                           setTimeout(function () {
-                               settings._header_binding();
-
-                               settings.dataModel.rows.peek().forEach(
-                               function ( data ) {
-                                   settings._row_bindings.get(data)();
-                               });
-                           });
-                       }
-                   });
-               }
-           });
-
            var before, diff;
            // TODO: replace with ko array diff
            diff = function ( arr1, arr2 ) {
@@ -1087,6 +1060,7 @@
                if (settings.server_callback) {
                    settings.server_callback({
                        data: items
+                       // TODO: get total from callback
                    ,   recordsTotal: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    ,   recordsFiltered: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    });
@@ -1126,15 +1100,11 @@
                    settings.ondestroytable(api, table);
                }
            });
-
-           // update table width observable on window resize
-           var $container = $(api.table().container());
-           if (ko.isObservable(options.tableWidth)) {
-               options.tableWidth($container.width());
-               
-               $(window).resize(function () {
-                   options.tableWidth($container.width());
-               });
+           
+           if(ko.isObservable(options.kodtColumns)) {
+                api.epResponsive.onResize(function () {
+                    options.kodtColumns(api.settings()[0].oInit.columns);
+                });
            }
            
            return { controlsDescendantBindings: true };

@@ -1101,9 +1101,19 @@
                }
            });
            
-           if(ko.isObservable(options.kodtColumns)) {
+           if(api.epResponsive && ko.isObservable(options.kodtColumns)) {
                 api.epResponsive.onResize(function () {
                     options.kodtColumns(api.settings()[0].oInit.columns);
+                
+                    // reapply bindings to the newly visible columns
+                    setTimeout(function () {
+                        settings._header_binding();
+
+                        settings.dataModel.rows.peek().forEach(
+                        function ( data ) {
+                            settings._row_bindings.get(data)();
+                        });
+                    });
                 });
            }
            

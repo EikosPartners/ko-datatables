@@ -1101,9 +1101,12 @@
                }
            });
            
-           if(api.epResponsive && ko.isObservable(options.kodtColumns)) {
-                api.epResponsive.onResize(function () {
-                    options.kodtColumns(api.settings()[0].oInit.columns);
+           if(api.epResponsive && ko.isObservable(options.epResponsive)) {
+                api.epResponsive.onResize(function ( visible ) {
+                    options.epResponsive({
+                        visibleColumnCount: visible,
+                        columns: api.settings()[0].oInit.columns
+                    });
                 
                     // reapply bindings to the newly visible columns
                     setTimeout(function () {

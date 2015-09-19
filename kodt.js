@@ -1102,10 +1102,10 @@
            });
            
            if(api.epResponsive && ko.isObservable(options.epResponsive)) {
-                api.epResponsive.onResize(function ( visible ) {
+                api.epResponsive.onResize(function ( hiddenColumns) {
                     options.epResponsive({
-                        visibleColumnCount: visible,
-                        columns: api.settings()[0].oInit.columns
+                        columns: api.settings()[0].oInit.columns,
+                        hiddenColumns: hiddenColumns,
                     });
                 
                     // reapply bindings to the newly visible columns

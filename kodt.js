@@ -35,6 +35,7 @@
    ,   make_element
    ,   make_binding
    ,   unwrap_template
+   ,   deep_compare
    ;
 
    /**
@@ -115,19 +116,56 @@
     * @this {Object} something with a template property
     * @param {String} [property] name of property to use
     */
-   unwrap_template = function ( property ) {
-       if (property === void 0) {
-           property = "template";
-       }
-       if (this[property] instanceof Function) {
-           this[property] = this[property]();
-       }
-       if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this[property])) {
-           this[property] =
-               "<!-- ko template:'" + this[property] + "' --><!-- /ko -->";
-       }
-   };
-
+    unwrap_template = function ( property ) {
+        if (property === void 0) {
+            property = "template";
+        }
+        if (this[property] instanceof Function) {
+            this[property] = this[property]();
+        }
+        if (/^[$A-Z_][$0-9A-Z_]*$/i.test(this[property])) {
+            this[property] =
+                "<!-- ko template:'" + this[property] + "' --><!-- /ko -->";
+        }
+    };
+    
+    deep_compare = function( a, b )
+    {
+        if(typeof(a) !== typeof(b)) {
+            return false;
+        }
+            
+        for( var i in a )
+        {
+            if( !b[i] )
+            {
+                return false;
+            }
+            if( typeof(b[i]) === 'object' )
+            {
+                if( !deep_compare( b[i],a[i] ) )
+                    return false;
+            }
+            if( b[i] !== a[i] )
+                return false;
+        }
+        for( var i in b )
+        {
+            if( !a[i] )
+            {
+                return false;
+            }
+            if( typeof(a[i]) === 'object' )
+            {
+                if( !deep_compare( b[i],a[i] ) )
+                    return false;
+            }
+            if( b[i] !== a[i] )
+                return false;
+        }
+        
+        return true;
+    }
    /**
     * @namespace ko.grid
     * @memberof ko
@@ -274,9 +312,10 @@
 
            // TODO: implement column based searching
        ,   start: 0
-       ,   count: 50
+       ,   count: 30
        ,   search: ""
        ,   order: null
+       ,   filters: []
 
        ,   usejson: true
        ,   onrequest: null
@@ -356,7 +395,7 @@
                ,   count: that.count.peek()
                ,   search: that.search.peek()
                ,   order: that.order.peek()
-               ,   filters: that.filters
+               ,   filters: that.filters.peek()
                },
                function ( error, rows ) {
                    // TODO: error handler
@@ -374,6 +413,7 @@
        ,   "count"
        ,   "search"
        ,   "order"
+       ,   "filters"
        ].forEach(function ( name ) {
            if (!ko.isObservable(that[name])) {
                that[name] = ko.observable(that[name]);
@@ -924,13 +964,12 @@
            }
            if (options.serverSide) {
                options.ajax = options.ajax || function ( data, callback ) {
-                   var order;
                    if (!settings.server_callback) {
                        settings.server_callback = callback;
                    }
                    //* handle all column filters
                    if (data.columns) {
-                       settings.dataModel.filters = data.columns
+                       var filters = data.columns
                            .filter(function(col){
                                if(col.search.value !== ""){
                                    return true;
@@ -943,16 +982,22 @@
                                        obj[columnName] = col.search.value;
                                return obj;
                             });   
+                       if( !deep_compare(filters, settings.dataModel.filters.peek()) ){
+                           settings.dataModel.filters( filters );
+                       }  
                    }
                    settings.dataModel.start(data.start);
                    settings.dataModel.count(data.length);
                    settings.dataModel.search(data.search.value);
-                   order = settings.dataModel.order.peek() || {};
                    
-                   // TODO: handle all orders
-                   if (order.column !== data.order[0].column ||
-                       order.dir !== data.order[0].dir ) {
-                       settings.dataModel.order(data.order[0]);
+                   var order = {};
+                   data.order.forEach(function(o){
+                     order[data.columns[o.column].name] = o.dir;
+                   });
+
+                    
+                   if ( !deep_compare( settings.dataModel.order.peek(), order ) ) {
+                       settings.dataModel.order(order);
                    }
                };
            }

@@ -131,9 +131,17 @@
     
     deep_compare = function( a, b )
     {
+        console.log( a, b );
         if(typeof(a) !== typeof(b)) {
             return false;
         }
+        
+        if( a === null && b === null )
+            return true; 
+        
+        if( a === null || b === null )
+            return false;
+       
             
         for( var i in a )
         {

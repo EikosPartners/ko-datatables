@@ -131,7 +131,6 @@
     
     deep_compare = function( a, b )
     {
-        console.log( a, b );
         if(typeof(a) !== typeof(b)) {
             return false;
         }
@@ -989,7 +988,7 @@
                                        columnName = col.data;
                                        obj[columnName] = col.search.value;
                                return obj;
-                            });   
+                            });    
                        if( !deep_compare(filters, settings.dataModel.filters.peek()) ){
                            settings.dataModel.filters( filters );
                        }  

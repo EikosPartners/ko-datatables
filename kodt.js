@@ -960,9 +960,13 @@
                var column, column_api, cellContext,
                    api = this.api();
 
+               var index = 0;
                Array.prototype.slice.call(row.children).forEach(
-               function ( cell, index ) {
+               function ( cell ) {
                    if (!cell._bindings) {
+                       while(!api.column(index).visible()) {
+                           index++;
+                       }
                        column = settings.columnModelsMap[
                            (column_api = api.column(index)).dataSrc()
                        ];
@@ -980,6 +984,7 @@
 
                        cell._bindings = cellContext;
                    }
+                   index++;
                });
            };
 

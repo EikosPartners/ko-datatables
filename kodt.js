@@ -1158,11 +1158,11 @@
                }
            });
            
-           if(api.epResponsive && ko.isObservable(options.epResponsive)) {
-                api.epResponsive.setOptions(options.epResponsive());
+           if(api.epResponsive && ko.isObservable(options.epResponsive.resizeObservable)) {
+                api.epResponsive.setOptions(options.epResponsive.options);
                
                 api.epResponsive.onResize(function ( hiddenColumns) {
-                    options.epResponsive({
+                    options.epResponsive.resizeObservable({
                         columns: api.settings()[0].oInit.columns,
                         hiddenColumns: hiddenColumns,
                     });

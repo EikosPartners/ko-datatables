@@ -1159,6 +1159,8 @@
            });
            
            if(api.epResponsive && ko.isObservable(options.epResponsive)) {
+                api.epResponsive.setOptions(options.epResponsive());
+               
                 api.epResponsive.onResize(function ( hiddenColumns) {
                     options.epResponsive({
                         columns: api.settings()[0].oInit.columns,

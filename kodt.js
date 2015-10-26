@@ -449,7 +449,7 @@
     * @param {Boolean} [options.control] is control column
     */
    ko.grid.ColumnModel = function ( options ) {
-
+       
        if (!this) {
            return new ko.grid.ColumnModel(options);
        }
@@ -467,7 +467,7 @@
            this.defaultContent = "";
            this.type = ko.grid.TYPE_CONTROL;
        }
-
+       
        if (this.type === void 0) {
            this.type = ko.grid.TYPE_TEXT;
        }
@@ -484,6 +484,8 @@
 
        if (this.template === void 0) {
            this.template = ko.grid.templates[this.type] || this.type;
+       } else {
+           this.template = ko.grid.templates[this.template] || this.template;
        }
 
        if (this.header === void 0) {
@@ -999,7 +1001,7 @@
                    
                    var order = {};
                    data.order.forEach(function(o){
-                     order[data.columns[o.column].name] = o.dir;
+                     order[data.columns[o.column].name] = { 'dir': o.dir, 'type': settings.columnModels[o.column].type };
                    });
 
                     

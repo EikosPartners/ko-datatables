@@ -153,7 +153,7 @@
                 if( !deep_compare( b[i],a[i] ) )
                     return false;
             }
-            if( b[i] !== a[i] )
+            else if( b[i] !== a[i] )
                 return false;
         }
         for( var i in b )
@@ -167,7 +167,7 @@
                 if( !deep_compare( b[i],a[i] ) )
                     return false;
             }
-            if( b[i] !== a[i] )
+            else if( b[i] !== a[i] )
                 return false;
         }
         
@@ -322,6 +322,7 @@
        ,   count: 30
        ,   search: ""
        ,   order: null
+       ,   initialOrder: null
        ,   filters: []
 
        ,   usejson: true
@@ -1180,6 +1181,12 @@
                     });
                 });
            }
+           
+           // apply initial order
+           if(settings.dataModel.initialOrder) {
+               table.fnSort(settings.dataModel.initialOrder);
+           }
+           
            
            return { controlsDescendantBindings: true };
        }

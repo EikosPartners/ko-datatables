@@ -1101,6 +1101,13 @@
            table = $element.dataTable(options);
            element._kodt = api = table.api();
 
+           // add tooltips to column headers
+           settings.columnModels.forEach(function(model) {
+                if(model.tooltip) {
+                    $("th.name_" + model.name).prop("title", model.tooltip);
+                } 
+           });
+
            var before, diff;
            // TODO: replace with ko array diff
            diff = function ( arr1, arr2 ) {

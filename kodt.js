@@ -1100,13 +1100,17 @@
 
            table = $element.dataTable(options);
            element._kodt = api = table.api();
+           
+           function setHeaderTooltips() {
+                // add tooltips to column headers
+                settings.columnModels.forEach(function(model) {
+                        if(model.tooltip) {
+                            $("th.name_" + model.name).prop("title", model.tooltip);
+                        } 
+                }); 
+           }
 
-           // add tooltips to column headers
-           settings.columnModels.forEach(function(model) {
-                if(model.tooltip) {
-                    $("th.name_" + model.name).prop("title", model.tooltip);
-                } 
-           });
+           setHeaderTooltips();
 
            var before, diff;
            // TODO: replace with ko array diff
@@ -1131,6 +1135,8 @@
                    ,   recordsTotal: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    ,   recordsFiltered: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    });
+                   // update tooltips since server call probably overwrote headers
+                   setHeaderTooltips();
                } else {
                    var removed = diff(before, items)
                    ,   added = diff(items, before)

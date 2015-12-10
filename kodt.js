@@ -496,6 +496,10 @@
        if (this.footer === void 0) {
            this.footer = "";
        }
+       
+       if(!ko.isObservable(this.visible)) {
+           this.visible = ko.observable(this.visible !== undefined ? this.visible : true);
+       }
 
        unwrap_template.call(this);
        unwrap_template.call(this, "header");
@@ -1018,10 +1022,10 @@
                var index = 0;
                Array.prototype.slice.call(row.children).forEach(
                function ( cell ) {
+                    while(!api.column(index).visible()) {
+                        index++;
+                    }
                    if (!cell._bindings) {
-                       while(!api.column(index).visible()) {
-                           index++;
-                       }
                        column = settings.columnModelsMap[
                            (column_api = api.column(index)).dataSrc()
                        ];
@@ -1101,16 +1105,24 @@
            table = $element.dataTable(options);
            element._kodt = api = table.api();
            
-           function setHeaderTooltips() {
+           function setupColumnModels() {
                 // add tooltips to column headers
-                settings.columnModels.forEach(function(model) {
+                settings.columnModels.forEach(function(model, index) {
                         if(model.tooltip) {
                             $("th.name_" + model.name).prop("title", model.tooltip);
-                        } 
+                        }
+                        if(ko.isObservable(model.visible)) {
+                            model.visible.subscribe(function(visible) {
+                                api.column(index).visible(visible);
+                                if(api.epResponsive) {
+                                    api.epResponsive.setIgnoreColumn(index, !visible);
+                                }
+                            });
+                        }
                 }); 
            }
 
-           setHeaderTooltips();
+           setupColumnModels();
 
            var before, diff;
            // TODO: replace with ko array diff
@@ -1136,7 +1148,7 @@
                    ,   recordsFiltered: settings.dataModel.serverTotal ? settings.dataModel.serverTotal() : items.length
                    });
                    // update tooltips since server call probably overwrote headers
-                   setHeaderTooltips();
+                   setupColumnModels();
                } else {
                    var removed = diff(before, items)
                    ,   added = diff(items, before)
@@ -1178,6 +1190,7 @@
                 api.epResponsive.setOptions(options.epResponsive.options);
                
                 api.epResponsive.onResize(function ( hiddenColumns) {
+                        
                     options.epResponsive.resizeObservable({
                         columns: api.settings()[0].oInit.columns,
                         hiddenColumns: hiddenColumns,
@@ -1186,7 +1199,7 @@
                     // reapply bindings to the newly visible columns
                     setTimeout(function () {
                         settings._header_binding();
-
+             
                         settings.dataModel.rows.peek().forEach(
                         function ( data ) {
                             settings._row_bindings.get(data)();
@@ -1194,12 +1207,19 @@
                     });
                 });
            }
+                      
+            // apply initial visibility
+            settings.columnModels.forEach(function(column, index) {
+                api.column(index).visible(column.visible());
+                if(api.epResponsive) {
+                    api.epResponsive.setIgnoreColumn(index, !column.visible());
+                }
+            });   
            
            // apply initial order
            if(settings.dataModel.initialOrder) {
                table.fnSort(settings.dataModel.initialOrder);
            }
-           
            
            return { controlsDescendantBindings: true };
        }

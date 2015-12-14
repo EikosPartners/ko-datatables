@@ -1108,9 +1108,9 @@
            function setupColumnModels() {
                 // add tooltips to column headers
                 settings.columnModels.forEach(function(model, index) {
-                        if(model.tooltip) {
-                            $("th.name_" + model.name).prop("title", model.tooltip);
-                        }
+                        // if(model.tooltip) {
+                        //     $("th.name_" + model.name).prop("title", model.tooltip);
+                        // }
                         if(ko.isObservable(model.visible)) {
                             model.visible.subscribe(function(visible) {
                                 api.column(index).visible(visible);

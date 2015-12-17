@@ -1101,6 +1101,15 @@
                     settings._header_callback.apply(this, arguments);
                }
            };
+           
+           // apply global default content to column definitions
+           if(settings.options.defaultContent !== undefined) {
+               options.columns.forEach(function(column) {
+                    if(column.defaultContent === undefined) {
+                        column.defaultContent = settings.options.defaultContent; 
+                    }
+               });
+           }
 
            table = $element.dataTable(options);
            element._kodt = api = table.api();

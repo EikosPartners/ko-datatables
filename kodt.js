@@ -36,6 +36,7 @@
    ,   make_binding
    ,   unwrap_template
    ,   deep_compare
+   ,   convertOrderToDataTablesSortArray
    ;
 
    /**
@@ -173,6 +174,28 @@
         
         return true;
     }
+    convertOrderToDataTablesSortArray = function (columnNames, orderBy){
+               
+        var initialOrder;
+
+        // get the first property from the object use that to get the .dir property 
+        var orderProp = Object.keys(orderBy)[0];
+        if(orderProp){
+            var direction = orderBy[orderProp].dir;
+            if(!direction) 
+            {
+                direction = 'asc';
+            }
+            var index = columnNames.indexOf(orderProp);
+            if(index <= 0){
+                index = 0;
+            }             
+            initialOrder = [index, direction];
+            return initialOrder;
+        }
+        // if orderProp is undefined return default query.
+        return [0, "asc"];
+   };
    /**
     * @namespace ko.grid
     * @memberof ko
@@ -429,6 +452,9 @@
 
            if ("function" === typeof that.onrequest) {
                that[name].subscribe(that.refresh);
+               //that[name].subscribe(function(changed){
+               //   console.error("caused refresh", JSON.stringify(changed)); 
+               //});
            }
        });
    };
@@ -778,9 +804,6 @@
            if (settings.dataModel.usejson && model.data === void 0) {
                model.data = model.name;
            }
-           if (settings.order === void 0 && model.orderable !== false) {
-               settings.order = index;
-           }
            // add convenience members
            model.index = index;
            model.value = model.data ? model.name : index;
@@ -968,7 +991,15 @@
            // options construction
            options.columns = settings.columnModels;
            options.data = ko.unwrap(settings.dataModel.rows);
-           options.order = options.order || [[settings.order, "asc"]];
+
+           // get column names
+           var columnNames = options.columns.map(function (column) {
+               return column.name;
+           }); 
+           
+           // create datatables sort array from kodts default sort object.
+           options.order = convertOrderToDataTablesSortArray(columnNames,settings.dataModel.order());    
+
            options.serverSide =
                settings.dataModel.onrequest instanceof Function;
            if (!options.dom) {
@@ -1224,11 +1255,7 @@
                     api.epResponsive.setIgnoreColumn(index, !column.visible());
                 }
             });   
-           
-           // apply initial order
-           if(settings.dataModel.initialOrder) {
-               table.fnSort(settings.dataModel.initialOrder);
-           }
+
            
            return { controlsDescendantBindings: true };
        }

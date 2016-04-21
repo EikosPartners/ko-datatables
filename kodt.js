@@ -1033,7 +1033,8 @@
                    }
                    settings.dataModel.start(data.start);
                    settings.dataModel.count(data.length);
-                   settings.dataModel.search(data.search.value);
+                   // ignore data search value as it overrides the grid observables
+                   //settings.dataModel.search(data.search.value); 
                    
                    var order = {};
                    data.order.forEach(function(o){

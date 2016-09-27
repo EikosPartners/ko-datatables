@@ -129,20 +129,20 @@
                 "<!-- ko template:'" + this[property] + "' --><!-- /ko -->";
         }
     };
-    
+
     deep_compare = function( a, b )
     {
         if(typeof(a) !== typeof(b)) {
             return false;
         }
-        
+
         if( a === null && b === null )
-            return true; 
-        
+            return true;
+
         if( a === null || b === null )
             return false;
-       
-            
+
+
         for( var i in a )
         {
             if( !b[i] )
@@ -171,30 +171,30 @@
             else if( b[i] !== a[i] )
                 return false;
         }
-        
+
         return true;
     }
     convertOrderToDataTablesSortArray = function (columnNames, orderBy){
-               
+
         var initialOrder;
 
-        // get the first property from the object use that to get the .dir property 
+        // get the first property from the object use that to get the .dir property
         var orderProp = Object.keys(orderBy)[0];
         if(orderProp){
             var direction = orderBy[orderProp].dir;
-            if(!direction) 
+            if(!direction)
             {
                 direction = 'asc';
             }
             var index = columnNames.indexOf(orderProp);
             if(index <= 0){
                 index = 0;
-            }             
+            }
             initialOrder = [index, direction];
             return initialOrder;
         }
-        // if orderProp is undefined return default query.
-        return [0, "asc"];
+        // no default sort
+        return [];
    };
    /**
     * @namespace ko.grid
@@ -453,7 +453,7 @@
            if ("function" === typeof that.onrequest) {
                that[name].subscribe(that.refresh);
                //that[name].subscribe(function(changed){
-               //   console.error("caused refresh", JSON.stringify(changed)); 
+               //   console.error("caused refresh", JSON.stringify(changed));
                //});
            }
        });
@@ -476,7 +476,7 @@
     * @param {Boolean} [options.control] is control column
     */
    ko.grid.ColumnModel = function ( options ) {
-       
+
        if (!this) {
            return new ko.grid.ColumnModel(options);
        }
@@ -494,7 +494,7 @@
            this.defaultContent = "";
            this.type = ko.grid.TYPE_CONTROL;
        }
-       
+
        if (this.type === void 0) {
            this.type = ko.grid.TYPE_TEXT;
        }
@@ -522,7 +522,7 @@
        if (this.footer === void 0) {
            this.footer = "";
        }
-       
+
        if(!ko.isObservable(this.visible)) {
            this.visible = ko.observable(this.visible !== undefined ? this.visible : true);
        }
@@ -995,10 +995,10 @@
            // get column names
            var columnNames = options.columns.map(function (column) {
                return column.name;
-           }); 
-           
+           });
+
            // create datatables sort array from kodts default sort object.
-           options.order = convertOrderToDataTablesSortArray(columnNames,settings.dataModel.order());    
+           options.order = convertOrderToDataTablesSortArray(columnNames,settings.dataModel.order());
 
            options.serverSide =
                settings.dataModel.onrequest instanceof Function;
@@ -1018,7 +1018,7 @@
                            .filter(function(col){
                                if(col.search.value !== ""){
                                    return true;
-                               } else { 
+                               } else {
                                    return false;
                                }})
                            .map(function(col){
@@ -1026,22 +1026,22 @@
                                        columnName = col.data;
                                        obj[columnName] = col.search.value;
                                return obj;
-                            });    
+                            });
                        if( !deep_compare(filters, settings.dataModel.filters.peek()) ){
                            settings.dataModel.filters( filters );
-                       }  
+                       }
                    }
                    settings.dataModel.start(data.start);
                    settings.dataModel.count(data.length);
                    // ignore data search value as it overrides the grid observables
-                   //settings.dataModel.search(data.search.value); 
-                   
+                   //settings.dataModel.search(data.search.value);
+
                    var order = {};
                    data.order.forEach(function(o){
                      order[data.columns[o.column].name] = { 'dir': o.dir, 'type': settings.columnModels[o.column].type };
                    });
 
-                    
+
                    if ( !deep_compare( settings.dataModel.order.peek(), order ) ) {
                        settings.dataModel.order(order);
                    }
@@ -1133,19 +1133,19 @@
                     settings._header_callback.apply(this, arguments);
                }
            };
-           
+
            // apply global default content to column definitions
            if(settings.options.defaultContent !== undefined) {
                options.columns.forEach(function(column) {
                     if(column.defaultContent === undefined) {
-                        column.defaultContent = settings.options.defaultContent; 
+                        column.defaultContent = settings.options.defaultContent;
                     }
                });
            }
 
            table = $element.dataTable(options);
            element._kodt = api = table.api();
-           
+
            function setupColumnModels() {
                 // add tooltips to column headers
                 settings.columnModels.forEach(function(model, index) {
@@ -1160,7 +1160,7 @@
                                 }
                             });
                         }
-                }); 
+                });
            }
 
            setupColumnModels();
@@ -1226,21 +1226,21 @@
                    settings.ondestroytable(api, table);
                }
            });
-           
+
            if(api.epResponsive && ko.isObservable(options.epResponsive.resizeObservable)) {
                 api.epResponsive.setOptions(options.epResponsive.options);
-               
+
                 api.epResponsive.onResize(function ( hiddenColumns) {
-                        
+
                     options.epResponsive.resizeObservable({
                         columns: api.settings()[0].oInit.columns,
                         hiddenColumns: hiddenColumns,
                     });
-                
+
                     // reapply bindings to the newly visible columns
                     setTimeout(function () {
                         settings._header_binding();
-             
+
                         settings.dataModel.rows.peek().forEach(
                         function ( data ) {
                             settings._row_bindings.get(data)();
@@ -1248,16 +1248,16 @@
                     });
                 });
            }
-                      
+
             // apply initial visibility
             settings.columnModels.forEach(function(column, index) {
                 api.column(index).visible(column.visible());
                 if(api.epResponsive) {
                     api.epResponsive.setIgnoreColumn(index, !column.visible());
                 }
-            });   
+            });
 
-           
+
            return { controlsDescendantBindings: true };
        }
    };
